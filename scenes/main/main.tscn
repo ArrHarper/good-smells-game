@@ -75,7 +75,7 @@ horizontal_alignment = 1
 position = Vector2(32, -28)
 
 [node name="GoodSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(100, -19)
+position = Vector2(97, -81)
 smell_name = "Flowers"
 smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
@@ -83,7 +83,7 @@ points = 10
 particles_color = Color(0, 1, 0, 1)
 
 [node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(163, -18)
+position = Vector2(159, -48)
 smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
@@ -91,7 +91,7 @@ points = -5
 particles_color = Color(1, 0, 0, 1)
 
 [node name="EpicSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(288, -18)
+position = Vector2(286, -82)
 smell_name = "Chocolate"
 smell_type = "epic"
 smell_message = "Delicious chocolate!"

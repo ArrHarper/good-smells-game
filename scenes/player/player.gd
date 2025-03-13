@@ -45,9 +45,11 @@ func _ready():
 		var smell_detector = Area2D.new()
 		smell_detector.name = "SmellDetector"
 		
-		# Copy the collision shape from the player
+		# Create a circle shape with 64px radius for smell detection
 		var collision_shape = CollisionShape2D.new()
-		collision_shape.shape = $CollisionShape2D.shape.duplicate()
+		var shape = CircleShape2D.new()
+		shape.radius = 64  # Match with visual smell radius
+		collision_shape.shape = shape
 		smell_detector.add_child(collision_shape)
 		
 		add_child(smell_detector)
@@ -159,6 +161,39 @@ func start_smelling():
 	scale_tween.tween_property($Sprite2D, "scale", Vector2(1.2, 1.2), 0.5)
 	scale_tween.tween_property($Sprite2D, "scale", Vector2(1.0, 1.0), 0.5)
 	
+	# Add visual indicator for the "smell radius"
+	var smell_radius = 64  # Match with smell detector radius
+	if not has_node("SmellRadius"):
+		var radius_indicator = Node2D.new()
+		radius_indicator.name = "SmellRadius"
+		
+		# Create a simple circle visual for the radius
+		var radius_circle = Control.new()
+		radius_circle.name = "RadiusCircle"
+		radius_indicator.add_child(radius_circle)
+		
+		# Draw the circle in _process
+		radius_circle.set_script(GDScript.new())
+		radius_circle.get_script().source_code = """
+extends Control
+
+func _draw():
+	draw_circle(Vector2.ZERO, %s, Color(0.5, 0.5, 1.0, 0.3))
+	draw_arc(Vector2.ZERO, %s, 0, TAU, 32, Color(0.5, 0.5, 1.0, 0.7), 2)
+
+func _process(_delta):
+	queue_redraw()
+""" % [smell_radius, smell_radius]
+		
+		add_child(radius_indicator)
+	
+	# Show the smell radius with animation
+	if has_node("SmellRadius"):
+		$SmellRadius.scale = Vector2.ZERO
+		var radius_tween = create_tween()
+		radius_tween.tween_property($SmellRadius, "scale", Vector2(1, 1), 0.5)
+		radius_tween.tween_property($SmellRadius, "scale", Vector2(0, 0), 0.5)
+	
 	# Start the smell timer
 	$SmellTimer.start()
 
@@ -180,9 +215,11 @@ func check_for_smells():
 		# Check if any of the overlapping areas are smells
 		for area in areas:
 			if area is Smell and not area.collected:
-				# Trigger the smell
+				# Call the detect function to show and animate the smell
+				area.detect()
+				
+				# Signal that smell was detected to update UI
 				emit_signal("smell_detected", area.smell_message, area.smell_type)
-				area.collected = true
 				smell_found = true
 				break
 	

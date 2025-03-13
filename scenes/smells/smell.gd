@@ -7,6 +7,7 @@ class_name Smell
 @export var smell_message: String = "You smell something..."
 @export var points: int = 0
 @export var collected: bool = false
+@export var detected: bool = false
 
 # Visual representation variables
 @export var particles_color: Color = Color(1, 1, 1)
@@ -21,9 +22,13 @@ func _ready():
 		collision.shape = shape
 		add_child(collision)
 	
-	# Set up visual particles
+	# Set up visual particles but make them hidden initially
 	setup_particles()
 	
+	# Hide particles initially
+	if particle_system:
+		particle_system.modulate.a = 0.0
+		
 	# Connect signal
 	connect("body_entered", _on_body_entered)
 
@@ -51,14 +56,27 @@ func setup_particles():
 
 func _on_body_entered(body):
 	if body is CharacterBody2D and not collected:
-		# Only interact with the player
-		if body.has_signal("smell_detected"):
-			body.emit_signal("smell_detected", smell_message, smell_type)
-			collected = true
+		# This function no longer immediately collects the smell.
+		# The player now needs to use their smell ability to detect it.
+		pass
+
+# New function to detect and animate the smell when player uses smell ability
+func detect():
+	if not detected and not collected:
+		detected = true
+		
+		# Show particles rising with animation
+		if particle_system:
+			# First make particles visible
+			particle_system.modulate.a = 1.0
 			
-			# Visual feedback
-			if particle_system:
-				# Create collection effect
-				var tween = create_tween()
-				tween.tween_property(particle_system, "modulate", Color(1, 1, 1, 0), 1.0)
-				tween.tween_callback(queue_free) 
+			# Create rising and fading animation
+			var tween = create_tween()
+			tween.tween_property(particle_system, "position", Vector2(0, -30), 1.5)
+			tween.parallel().tween_property(particle_system, "modulate", Color(1, 1, 1, 0), 1.5)
+			tween.tween_callback(mark_collected)
+
+# Called when the smell animation is complete
+func mark_collected():
+	if not collected:
+		collected = true 
