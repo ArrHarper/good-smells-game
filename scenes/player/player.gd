@@ -215,14 +215,22 @@ func check_for_smells():
 		# Check if any of the overlapping areas are smells
 		for area in areas:
 			if area is Smell and not area.collected:
-				# Call the detect function to show and animate the smell
+				# Connect to animation completed signal if not already connected
+				if not area.is_connected("animation_completed", _on_smell_animation_completed):
+					area.connect("animation_completed", _on_smell_animation_completed)
+				
+				# Call the detect function to start animation
 				area.detect()
 				
-				# Signal that smell was detected to update UI
-				emit_signal("smell_detected", area.smell_message, area.smell_type)
+				# No longer emitting the smell signal here - it will be emitted after animation
 				smell_found = true
 				break
 	
 	# If no smell found in the immediate area
 	if not smell_found:
 		emit_signal("smell_detected", "Nothing interesting here", "neutral")
+
+# New function to handle the smell animation completion
+func _on_smell_animation_completed(smell_data):
+	# Now emit the smell signal with the message and type
+	emit_signal("smell_detected", smell_data.message, smell_data.type)
