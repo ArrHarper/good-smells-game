@@ -1,0 +1,4 @@
+font: "/assets/fonts/VAGABONDED-BOLD.TTF"
+material: "/builtins/fonts/font.material"
+size: 48
+characters: " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"

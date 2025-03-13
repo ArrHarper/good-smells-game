@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://b0dw3hyhtyow2"]
+
+[ext_resource type="Script" uid="uid://de17vp682kddm" path="res://scenes/player/player.gd" id="1_g2els"]
+[ext_resource type="Texture2D" uid="uid://cdammgm8lmac3" path="res://assets/images/nose.png" id="2_qhqgy"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0s5j8"]
+radius = 16.0
+
+[node name="nose" type="CharacterBody2D"]
+script = ExtResource("1_g2els")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_qhqgy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_0s5j8")
