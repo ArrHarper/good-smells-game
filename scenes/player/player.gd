@@ -20,6 +20,7 @@ var facing_right = true
 var is_smelling = false
 var smell_timer = 0
 var smell_duration = 1.0
+var float_animation_active = true  # Control whether player sprite floats
 
 # Debug mode - set to false when finished testing
 var debug_mode = true
@@ -112,27 +113,39 @@ func _process(delta):
 			global_position.y = MAX_TILE_Y * TILE_HEIGHT + TILE_HEIGHT / 2
 			base_position_y = global_position.y  # Update base Y when hitting boundary
 	
-	# Handle animation - now applied as an offset to the current position
-	var y_offset = 0
-	if direction.length() > 0:
-		move_time += delta
-		# Bouncing animation during movement
-		y_offset = -sin(move_time * 10) * 3
+	# Handle sprite animation - applied only to the sprite, not the entire node
+	if float_animation_active:
+		var y_offset = 0
+		if direction.length() > 0:
+			move_time += delta
+			# Bouncing animation during movement
+			y_offset = -sin(move_time * 10) * 3
+			
+			# Flip sprite based on direction
+			if direction.x > 0:
+				facing_right = true
+				$Sprite2D.flip_h = false
+			elif direction.x < 0:
+				facing_right = false
+				$Sprite2D.flip_h = true
+		else:
+			# Idle bobbing animation
+			idle_time += delta
+			y_offset = -sin(idle_time * 2) * 2
 		
-		# Flip sprite based on direction
+		# Apply animation to sprite's offset only, not affecting the actual body position
+		$Sprite2D.position.y = y_offset
+	else:
+		# Reset sprite position if animation is disabled
+		$Sprite2D.position.y = 0
+		
+		# Still handle sprite flipping for direction
 		if direction.x > 0:
 			facing_right = true
 			$Sprite2D.flip_h = false
 		elif direction.x < 0:
 			facing_right = false
 			$Sprite2D.flip_h = true
-	else:
-		# Idle bobbing animation
-		idle_time += delta
-		y_offset = -sin(idle_time * 2) * 2
-	
-	# Apply animation Y offset without overriding actual position
-	global_position.y = base_position_y + y_offset
 	
 	# Smell ability - Space key for now, can be updated in project settings
 	if Input.is_action_just_pressed("smell") and not is_smelling:
