@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://c022ogphrgx6o"
-path="res://.godot/imported/VAGABONDED-BOLD.TTF-a34744d81564d15f80f217b7ae999cea.fontdata"
+path="res://.godot/imported/VAGABONDED-BOLD.TTF-6eb654f1ca7a5ba7a5fed44f23a460dc.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/VAGABONDED-BOLD.TTF"
-dest_files=["res://.godot/imported/VAGABONDED-BOLD.TTF-a34744d81564d15f80f217b7ae999cea.fontdata"]
+source_file="res://assets/VAGABONDED-BOLD.TTF"
+dest_files=["res://.godot/imported/VAGABONDED-BOLD.TTF-6eb654f1ca7a5ba7a5fed44f23a460dc.fontdata"]
 
 [params]
 
