@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://by87fmp5hhobc" path="res://scenes/main/main.gd" id="1_0wfyh"]
 [ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="3_6q06x"]
 [ext_resource type="PackedScene" uid="uid://b0dw3hyhtyow2" path="res://scenes/player/player.tscn" id="3_sugp2"]
-[ext_resource type="PackedScene" path="res://scenes/smells/smell.tscn" id="4_lfxvs"]
+[ext_resource type="PackedScene" uid="uid://dbw0qdadjukii" path="res://scenes/smells/smell.tscn" id="4_lfxvs"]
 [ext_resource type="PackedScene" uid="uid://imdjiojyjkr7" path="res://scenes/main/flatmap.tscn" id="6_ismap"]
 [ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="9_m3u8n"]
 [ext_resource type="Script" uid="uid://c4sgqa6wqwmw5" path="res://scripts/isometric_sorter.gd" id="10_sorter"]
@@ -37,23 +37,24 @@ script = ExtResource("9_m3u8n")
 
 [node name="nose" parent="." instance=ExtResource("3_sugp2")]
 z_index = 10
-position = Vector2(33, -69)
+position = Vector2(-77, -32)
 
 [node name="GoodSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(73, 30)
+z_index = 25
+position = Vector2(59, 22)
 smell_name = "Flowers"
 smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
 points = 25
-particles_color = Color(0.998525, 0.509175, 0.722968, 1)
+particles_color = Color(0.761784, 0.0833806, 0.45085, 0.898039)
 
 [node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(-38, -44)
+position = Vector2(-58, -22)
 smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
 points = 25
-particles_color = Color(0.226262, 0.124142, 0.0104875, 1)
+particles_color = Color(0.394606, 0.401839, 1.92523e-07, 1)
 
 [node name="EpicSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 1
@@ -62,7 +63,6 @@ smell_name = "Chocolate"
 smell_type = "epic"
 smell_message = "Delicious chocolate!"
 points = 25
-particles_color = Color(0.8, 0.4, 0, 1)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
