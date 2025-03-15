@@ -12,10 +12,16 @@ const MAX_TILE_X = 21
 const MIN_TILE_Y = 0
 const MAX_TILE_Y = 21
 
-# Debug mode - set to false when finished testing
-var debug_mode = true
+# Debug mode - set to false for production
+@export var debug_mode = true
 
 func _ready():
+	# Configure TileSet error handling
+	if Engine.has_singleton("ErrorHandler"):
+		var error_handler = Engine.get_singleton("ErrorHandler")
+		error_handler.register_tilemaps(self)
+		error_handler.suppress_tileset_errors()
+	
 	# Create UI instance
 	ui_instance = ui_scene.instantiate()
 	add_child(ui_instance)
@@ -126,44 +132,43 @@ func initialize_isometric_sorting():
 
 # Handle smell detection from player
 func _on_smell_detected(smell_text, smell_type):
-	# Debug output with more details - always show regardless of debug_mode
-	print("SMELL SIGNAL: Main received smell_detected signal from player")
-	print("SMELL SIGNAL: - Message: '" + smell_text + "'")
-	print("SMELL SIGNAL: - Type: '" + smell_type + "'")
-	print("SMELL SIGNAL: - UI instance exists: " + str(is_instance_valid(ui_instance)))
+	if debug_mode:
+		print("SMELL SIGNAL: Main received smell_detected signal from player")
+		print("SMELL SIGNAL: - Message: '" + smell_text + "'")
+		print("SMELL SIGNAL: - Type: '" + smell_type + "'")
 	
-	# We should show the message immediately instead of waiting for another signal
+	# Show the message via UI
 	if ui_instance:
-		print("SMELL SIGNAL: Showing message via UI")
 		ui_instance.show_smell_message(smell_text, smell_type)
-	else:
-		print("SMELL SIGNAL ERROR: UI instance not found, can't display smell message")
+	elif debug_mode:
+		print("ERROR: UI instance not found, can't display smell message")
 
 # Handle smell animation completed signal
 func _on_smell_animation_completed(smell_data):
-	# Debug output with more details - always show regardless of debug_mode
-	print("SMELL SIGNAL: Smell animation_completed signal received")
-	print("SMELL SIGNAL: - Data received: " + str(smell_data))
+	if debug_mode:
+		print("SMELL SIGNAL: Smell animation_completed signal received")
+		print("SMELL SIGNAL: - Data received: " + str(smell_data))
 	
 	# Validate smell data
 	if not smell_data is Dictionary:
-		print("SMELL SIGNAL ERROR: smell_data is not a Dictionary: " + str(smell_data))
+		if debug_mode:
+			print("ERROR: smell_data is not a Dictionary: " + str(smell_data))
 		return
 		
 	if not smell_data.has("message") or not smell_data.has("type"):
-		print("SMELL SIGNAL ERROR: smell_data missing required fields: " + str(smell_data))
+		if debug_mode:
+			print("ERROR: smell_data missing required fields: " + str(smell_data))
 		return
 	
-	print("SMELL SIGNAL: - Message: '" + smell_data.message + "'")
-	print("SMELL SIGNAL: - Type: '" + smell_data.type + "'")
-	print("SMELL SIGNAL: - UI instance exists: " + str(is_instance_valid(ui_instance)))
+	if debug_mode:
+		print("SMELL SIGNAL: - Message: '" + smell_data.message + "'")
+		print("SMELL SIGNAL: - Type: '" + smell_data.type + "'")
 	
 	# Now show the UI message
 	if ui_instance:
-		print("SMELL SIGNAL: Calling ui_instance.show_smell_message()")
 		ui_instance.show_smell_message(smell_data.message, smell_data.type)
-	else:
-		print("SMELL SIGNAL ERROR: UI instance not found, can't display smell message")
+	elif debug_mode:
+		print("ERROR: UI instance not found, can't display smell message")
 
 # Count the number of smell objects in the scene
 func count_smell_objects():
@@ -201,6 +206,11 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 	if has_node("IsometricMap") and $IsometricMap.has_node("FloorMap"):
 		var floor_map = $IsometricMap.get_node("FloorMap")
 		if floor_map:
+			# Activate error filtering if available
+			if Engine.has_singleton("ErrorHandler"):
+				var error_handler = Engine.get_singleton("ErrorHandler")
+				error_handler.filter_message("Checking floor tiles")
+			
 			# Convert world position to tile coordinates
 			var tile_pos = IsometricUtils.world_to_tile(world_pos, TILE_WIDTH, TILE_HEIGHT)
 			
@@ -211,33 +221,37 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 					", get_cell_source_id:", floor_map.has_method("get_cell_source_id"),
 					", get_cell:", floor_map.has_method("get_cell"))
 			
+			# Try different methods to check for a tile
+			var found_tile = false
+			
 			# First try: check if TileMapLayer has has_cell method (more reliable)
 			if floor_map.has_method("has_cell"):
+				# Safely call method
 				if floor_map.has_cell(tile_pos):
+					found_tile = true
 					if debug_mode:
-						print("Found floor tile at position using has_cell: ", tile_pos)
+						print("Found floor tile using has_cell at: ", tile_pos)
 					return tile_pos
+			
 			# Second try: use get_cell_source_id method
-			elif floor_map.has_method("get_cell_source_id"):
-				# TileMapLayer's get_cell_source_id only expects one argument (the tile position)
+			if not found_tile and floor_map.has_method("get_cell_source_id"):
 				var source_id = -1
-				# Wrap in try/catch in case the API has changed
-				if OS.is_debug_build():
-					source_id = floor_map.get_cell_source_id(tile_pos)
-				else:
-					# In production, use try/catch to avoid crashes
-					source_id = floor_map.call("get_cell_source_id", tile_pos)
+				# Use call to safely handle API differences
+				source_id = floor_map.call("get_cell_source_id", tile_pos)
 				
 				if source_id != -1: # -1 means no tile
+					found_tile = true
 					if debug_mode:
-						print("Found floor tile at position using get_cell_source_id: ", tile_pos)
+						print("Found floor tile using get_cell_source_id at: ", tile_pos)
 					return tile_pos
+			
 			# Last resort: Try get_cell method
-			elif floor_map.has_method("get_cell"):
-				var cell_value = floor_map.get_cell(tile_pos)
+			if not found_tile and floor_map.has_method("get_cell"):
+				var cell_value = floor_map.call("get_cell", tile_pos)
 				if cell_value != -1: # -1 usually means empty
+					found_tile = true
 					if debug_mode:
-						print("Found floor tile at position using get_cell: ", tile_pos)
+						print("Found floor tile using get_cell at: ", tile_pos)
 					return tile_pos
 			
 			if debug_mode:

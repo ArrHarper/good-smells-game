@@ -1,43 +1,49 @@
 extends CharacterBody2D
+class_name Player
 
 # Movement constants
 const MOVE_SPEED = 300
-# Isometric tile dimensions - update based on your specific tileset
+# Isometric tile dimensions
 const TILE_WIDTH = 32
 const TILE_HEIGHT = 16
 
-# Animation variables
+# Player movement properties
+var base_speed = 150
+var current_speed = base_speed
+var is_moving = false
+
+# Smell detection
+var is_smelling = false
+var smell_duration = 2.0 # Duration of the smell action in seconds
+var pending_smells = [] # List of smell objects to process
+signal smell_detected(smell_text, smell_type) # Signal when a smell is detected
+
+# Animation properties
+var floating_time = 0
+var wiggle_time = 0
+var float_speed = 1.5
+var float_height = 3
+var wiggle_speed = 12
+var wiggle_width = 4
 var idle_time = 0
 var move_time = 0
 var original_y = 0
-var base_position_y = 0  # Store the base Y position without animation offset
+var base_position_y = 0 # Store the base Y position without animation offset
 var facing_right = true
-var is_smelling = false
 var smell_timer = 0
-var smell_duration = 2.0  # Duration for smell action in seconds
-var float_animation_active = true  # Control whether player sprite floats
-var wiggle_time = 0.0  # Track wiggle animation time
-var wiggle_intensity = 2.5  # How intense the wiggle is
-var wiggle_speed = 15.0  # How fast the wiggle moves
+var float_animation_active = true # Control whether player sprite floats
+var wiggle_intensity = 2.5 # How intense the wiggle is
 
-# Debug mode - set to false when finished testing
-var debug_mode = false  # Turned off to suppress regular position logs
-
-# Smell signal
-signal smell_detected(smell_text, smell_type)
-
-# Add tracking for last position to avoid excessive logging
+# Debug
+@export var debug_mode = false # Set to true to show detailed logs
 var last_reported_tile_pos = Vector2i(-999, -999)
 var position_report_timer = 0
-var position_report_interval = 0.5  # Report position at most every half second
-
-# Store pending smells to process after animation
-var pending_smells = []
+var position_report_interval = 0.5 # Report position at most every half second
 
 # Called when the node enters the scene tree for the first time
 func _ready():
 	original_y = position.y
-	base_position_y = position.y  # Initialize base position
+	base_position_y = position.y # Initialize base position
 	
 	# Set up smell action timer
 	setup_smell_timer()
@@ -76,7 +82,7 @@ func setup_smell_detector():
 		# Create a circle shape with 64px radius for smell detection
 		var collision_shape = CollisionShape2D.new()
 		var shape = CircleShape2D.new()
-		shape.radius = 64  # Match with visual smell radius
+		shape.radius = 64 # Match with visual smell radius
 		collision_shape.shape = shape
 		smell_detector.add_child(collision_shape)
 		
@@ -162,7 +168,7 @@ func _process(delta):
 		
 		# Apply the wiggle animation
 		$IsoNoseSprite.position.x = wiggle_offset_x
-		$IsoNoseSprite.position.y += wiggle_offset_y * 0.1  # Add to the existing float animation
+		$IsoNoseSprite.position.y += wiggle_offset_y * 0.1 # Add to the existing float animation
 
 # Handle sprite animations
 func handle_animations(delta, input_vector):
@@ -174,7 +180,6 @@ func handle_animations(delta, input_vector):
 			# Left key → Northwest
 			# Down key → Southwest
 			# Up key → Northeast
-			
 			# Determine dominant direction from input
 			if abs(input_vector.x) > abs(input_vector.y):
 				if input_vector.x > 0:
@@ -200,11 +205,11 @@ func handle_animations(delta, input_vector):
 			if input_vector.length() > 0:
 				move_time += delta
 				# Bouncing animation during movement
-				y_offset = -sin(move_time * 10) * 3
+				y_offset = - sin(move_time * 10) * 3
 			else:
 				# Idle bobbing animation
 				idle_time += delta
-				y_offset = -sin(idle_time * 2) * 2
+				y_offset = - sin(idle_time * 2) * 2
 			
 			# Apply animation to sprite's offset only, not affecting the actual body position
 			$IsoNoseSprite.position.y = y_offset
@@ -214,7 +219,7 @@ func handle_animations(delta, input_vector):
 
 func start_smelling():
 	is_smelling = true
-	wiggle_time = 0  # Reset wiggle animation timer
+	wiggle_time = 0 # Reset wiggle animation timer
 	
 	# Clear any pending smells
 	pending_smells = []
@@ -333,21 +338,18 @@ func process_pending_smells():
 
 # New function to handle the animation_completed signal from smells
 func _on_smell_animation_completed(smell_data):
-	# Always log smell signals regardless of debug_mode
-	print("SMELL SIGNAL: Player received smell_animation_completed with data: ", smell_data)
-	
 	# Extract smell information from the data
 	var smell_text = smell_data.message if "message" in smell_data else "Something smells..."
 	var smell_type = smell_data.type if "type" in smell_data else "neutral"
 	
-	# Emit the signal with smell information
-	print("SMELL SIGNAL: Player emitting smell_detected signal with:")
-	print("SMELL SIGNAL: - Message: '" + smell_text + "'")
-	print("SMELL SIGNAL: - Type: '" + smell_type + "'")
-	emit_signal("smell_detected", smell_text, smell_type)
+	if debug_mode:
+		print("SMELL SIGNAL: Player received smell_animation_completed with data: ", smell_data)
+		print("SMELL SIGNAL: Player emitting smell_detected signal with:")
+		print("SMELL SIGNAL: - Message: '" + smell_text + "'")
+		print("SMELL SIGNAL: - Type: '" + smell_type + "'")
 	
-	# Always log when smell signal is emitted
-	print("SMELL SIGNAL: Player emitted smell_detected signal")
+	# Emit the signal with smell information
+	emit_signal("smell_detected", smell_text, smell_type)
 
 # Alias for backwards compatibility
 func check_for_smells():

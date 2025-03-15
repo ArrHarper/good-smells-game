@@ -29,7 +29,7 @@ func register_node(node: Node2D):
 
 # Add sorted object - alias for register_node for consistency
 func add_sorted_object(node: Node2D):
-	register_node(node)  # Use existing functionality
+	register_node(node) # Use existing functionality
 
 # Unregister a node from Y-sorting
 func unregister_node(node: Node2D):
@@ -47,15 +47,9 @@ func sort_nodes_by_y():
 		if is_instance_valid(node) and node is Node2D:
 			# Skip CharacterBody2D nodes (like the player) as they manage their own z-index
 			if node is CharacterBody2D:
-				# Optional: Provide debugging info for characters
-				var is_debug = false
-				if node.get("debug_mode") != null:  # Safer property access
-					is_debug = node.debug_mode
-				
-				if is_debug:
-					var tile_pos = Vector2i(0, 0)
-					# Get the tile position using IsometricUtils directly
-					tile_pos = IsometricUtils.world_to_tile(node.global_position, 32, 16)
+				# Check for debug mode using safe property access
+				if node.has_method("get") and node.get("debug_mode") != null and node.debug_mode:
+					var tile_pos = IsometricUtils.world_to_tile(node.global_position, 32, 16)
 					print("Character at tile: ", tile_pos, " | World pos: ", node.global_position, " | Z-index: ", node.z_index)
 				continue
 				
@@ -74,4 +68,4 @@ func register_children_recursive(parent: Node):
 		
 		# Recurse into children
 		if child.get_child_count() > 0:
-			register_children_recursive(child) 
+			register_children_recursive(child)

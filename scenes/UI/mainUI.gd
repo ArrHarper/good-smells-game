@@ -12,7 +12,7 @@ func _ready():
 	# Initialize debug text if it exists
 	update_debug_text(Vector2.ZERO, Vector2i.ZERO, 0)
 	
-	# Enable process for animations
+	# Enable process for updates
 	set_process(true)
 
 func _process(delta):
@@ -25,16 +25,14 @@ func _process(delta):
 		var player = get_node_or_null("/root/Main/nose")
 		if player:
 			var player_pos = player.global_position
-			var tile_pos = IsometricUtils.world_to_tile(player_pos, 32, 16) # Using correct tile dimensions
+			var tile_pos = IsometricUtils.world_to_tile(player_pos, 32, 16)
 			var z_index = player.z_index
 			update_debug_text(player_pos, tile_pos, z_index)
 
 # Update the debug text with player information
 func update_debug_text(player_pos, tile_pos, z_index):
-	# Find the debug text node - try both paths to handle renaming
+	# Find the debug text node
 	var debug_text = get_node_or_null("TextureButton/RichTextLabel")
-	if not debug_text:
-		debug_text = get_node_or_null("DebugButton/DebugText")
 	
 	if debug_text:
 		var text = "Debug Info\n"
@@ -129,23 +127,17 @@ func show_smell_message(text, type):
 		timer.queue_free()
 	)
 	timer.start()
-	
-	print("Displayed smell message in SmellWindowIndicator: " + text)
 
 # Test function to verify smell messages work
 func test_smell_message():
-	# Create a timer to wait 1 second before showing test message
 	var timer = Timer.new()
 	timer.wait_time = 1.0
 	timer.one_shot = true
 	add_child(timer)
 	
-	# Connect timeout to show a test message
 	timer.timeout.connect(func():
-		print("TEST: Showing test smell message")
 		show_smell_message("TEST MESSAGE: This is a test smell!", "good")
 		timer.queue_free()
 	)
 	
-	# Start the timer
 	timer.start()
