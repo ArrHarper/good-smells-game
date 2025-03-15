@@ -18,6 +18,11 @@ var smell_duration = 2.0 # Duration of the smell action in seconds
 var pending_smells = [] # List of smell objects to process
 signal smell_detected(smell_text, smell_type) # Signal when a smell is detected
 
+# Particle system properties
+var smell_particles = null
+var default_particle_color = Color(0.9, 0.9, 1.0, 0.8)
+var current_particle_color = default_particle_color
+
 # Animation properties
 var floating_time = 0
 var wiggle_time = 0
@@ -103,14 +108,30 @@ func setup_smell_particles():
 		material.gravity = Vector3(0, -30, 0)
 		material.initial_velocity_min = 20.0
 		material.initial_velocity_max = 40.0
-		material.color = Color(0.9, 0.9, 1.0, 0.8)
+		material.color = default_particle_color
+		
+		# Add enhanced properties for better visual effect
+		material.scale_min = 1.5
+		material.scale_max = 3.0
+		material.turbulence_enabled = true
+		material.turbulence_noise_strength = 1.2
+		material.turbulence_noise_scale = 1.5
 		
 		particles.process_material = material
-		particles.amount = 24
-		particles.lifetime = 1.0
+		particles.amount = 28
+		particles.lifetime = 3.0
+		particles.explosiveness = 0.2
+		particles.z_index = 1000
+		particles.z_as_relative = false
 		particles.emitting = false
 		
+		# Position the particles slightly above the character's head
+		particles.position = Vector2(0, -20)
+		
 		add_child(particles)
+		smell_particles = particles
+	else:
+		smell_particles = $SmellParticles
 
 # Called every frame
 func _process(delta):
@@ -231,12 +252,6 @@ func start_smelling():
 	# Get current facing direction - we'll keep using the same sprite during wiggle
 	# but we won't change to a smell-specific sprite to avoid disappearing
 	
-	# Activate the smell particles
-	if has_node("SmellParticles"):
-		$SmellParticles.emitting = true
-		if debug_mode:
-			print("Activated smell particles")
-	
 	# Start the smell timer for 2 seconds
 	if has_node("SmellTimer"):
 		$SmellTimer.start()
@@ -259,10 +274,6 @@ func _on_smell_timer_timeout():
 		
 		# Let the Y position be handled by normal floating
 		# It will be calculated on the next frame
-	
-	# Stop the smell particles
-	if has_node("SmellParticles"):
-		$SmellParticles.emitting = false
 	
 	# Now that the animation is complete, process any pending smells
 	process_pending_smells()
@@ -314,9 +325,13 @@ func process_pending_smells():
 			if debug_mode:
 				print("Processing smell: " + smell.smell_name)
 			
-			# Connect to the smell's animation_completed signal if it exists
+			# Connect to the smell's signals
 			if not smell.is_connected("animation_completed", _on_smell_animation_completed):
 				smell.connect("animation_completed", _on_smell_animation_completed)
+				
+			# Connect to the smell's smell_detected signal
+			if not smell.is_connected("smell_detected", _on_smell_detected):
+				smell.connect("smell_detected", _on_smell_detected)
 			
 			# Call detect method on the smell
 			if smell.has_method("detect"):
@@ -326,7 +341,6 @@ func process_pending_smells():
 				if "detected" in smell:
 					smell.detected = true
 				
-				# Note: We no longer need to emit the signal here as it will be handled by the connected callback
 				if debug_mode:
 					print("Detected smell: ", smell.smell_name, " (", smell.smell_type, ")")
 			else:
@@ -335,6 +349,39 @@ func process_pending_smells():
 	
 	# Clear the pending smells list
 	pending_smells = []
+
+# Handle the smell_detected signal from smells
+func _on_smell_detected(smell_info):
+	if debug_mode:
+		print("SMELL SIGNAL: Player received smell_detected with data: ", smell_info)
+	
+	# Get the color from the smell info
+	var smell_color = smell_info.color if "color" in smell_info else default_particle_color
+	
+	# Emit particles from the player
+	emit_particles(smell_color)
+
+# Emit particles with the specified color
+func emit_particles(color):
+	if smell_particles:
+		# Update particle color
+		var material = smell_particles.process_material
+		material.color = color
+		
+		# Start emitting particles
+		smell_particles.emitting = true
+		
+		# Create a timer to stop particles after a duration
+		var timer = Timer.new()
+		timer.wait_time = 2.0 # Particle emission duration
+		timer.one_shot = true
+		add_child(timer)
+		timer.timeout.connect(func():
+			if smell_particles:
+				smell_particles.emitting = false
+			timer.queue_free()
+		)
+		timer.start()
 
 # New function to handle the animation_completed signal from smells
 func _on_smell_animation_completed(smell_data):

@@ -54,11 +54,14 @@ func connect_smell_signals():
 	var smell_nodes = get_tree().get_nodes_in_group("smell")
 	
 	for smell in smell_nodes:
+		# Connect to animation_completed signal
 		if smell.has_signal("animation_completed") and not smell.is_connected("animation_completed", _on_smell_animation_completed):
 			smell.connect("animation_completed", _on_smell_animation_completed)
 			
 			if debug_mode:
 				print("Connected to smell animation signal: " + smell.smell_name)
+		
+		# No need to connect to smell_detected signal here as it's handled by the player now
 
 # Function to get map boundaries - can be called by child nodes
 func get_map_boundaries():
