@@ -1,7 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://dhdghvh01i7hf"]
+[gd_scene load_steps=6 format=3 uid="uid://dhdghvh01i7hf"]
 
 [ext_resource type="Script" uid="uid://bvgh3fyb255jv" path="res://scenes/UI/mainUI.gd" id="1_pdh8v"]
+[ext_resource type="Texture2D" uid="uid://bef2upm3o83ar" path="res://assets/images/buggo.png" id="2_gl4co"]
 [ext_resource type="Texture2D" uid="uid://ds3lplud4scfc" path="res://assets/images/buggoActive.png" id="2_n6wm8"]
+[ext_resource type="Texture2D" uid="uid://buek3cr6n3l5u" path="res://assets/images/buggoHover.png" id="4_lj5up"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxj10"]
+bg_color = Color(0, 0, 0, 0.4)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="UI" type="CanvasLayer"]
 script = ExtResource("1_pdh8v")
@@ -46,7 +55,9 @@ offset_right = 729.0
 offset_bottom = 345.0
 toggle_mode = true
 action_mode = 0
-texture_normal = ExtResource("2_n6wm8")
+texture_normal = ExtResource("2_gl4co")
+texture_pressed = ExtResource("2_n6wm8")
+texture_hover = ExtResource("4_lj5up")
 ignore_texture_size = true
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureButton"]
@@ -60,6 +71,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/shadow_offset_x = 1
 theme_override_font_sizes/normal_font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_xxj10")
 text = "Debug"
 scroll_active = false
 shortcut_keys_enabled = false

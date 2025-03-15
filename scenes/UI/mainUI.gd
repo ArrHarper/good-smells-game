@@ -12,6 +12,15 @@ func _ready():
 	# Initialize debug text if it exists
 	update_debug_text(Vector2.ZERO, Vector2i.ZERO, 0)
 	
+	# Set up the debug toggle button
+	var debug_button = get_node_or_null("TextureButton")
+	var debug_text = get_node_or_null("TextureButton/RichTextLabel")
+	
+	if debug_button and debug_text:
+		# Set the debug text to be hidden by default
+		debug_text.visible = false
+		debug_button.pressed.connect(_on_debug_button_pressed)
+	
 	# Enable process for updates
 	set_process(true)
 
@@ -141,3 +150,9 @@ func test_smell_message():
 	)
 	
 	timer.start()
+
+# Toggle visibility of the debug text panel
+func _on_debug_button_pressed():
+	var debug_text = get_node_or_null("TextureButton/RichTextLabel")
+	if debug_text:
+		debug_text.visible = !debug_text.visible
