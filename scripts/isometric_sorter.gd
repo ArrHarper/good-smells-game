@@ -40,10 +40,27 @@ func _on_node_tree_exiting(node: Node2D):
 func sort_nodes_by_y():
 	# Sort nodes by y position (higher y = appears in front)
 	for node in sorted_nodes:
-		if is_instance_valid(node):
-			# In isometric view, z_index is based on Y position
+		if is_instance_valid(node) and node is Node2D:
+			# Skip CharacterBody2D nodes (like the player) as they manage their own z-index
+			if node is CharacterBody2D:
+				# Optional: Provide debugging info for characters
+				var is_debug = false
+				if node.get("debug_mode") != null:  # Safer property access
+					is_debug = node.debug_mode
+				
+				if is_debug:
+					var tile_pos = Vector2i(0, 0)
+					# Get the tile position using IsometricUtils directly
+					tile_pos = IsometricUtils.world_to_tile(node.global_position, 32, 16)
+					print("Character at tile: ", tile_pos, " | World pos: ", node.global_position, " | Z-index: ", node.z_index)
+				continue
+				
+			# In isometric view, z_index is based on Y position for non-player objects
 			# Objects with higher Y values should appear in front
-			node.z_index = int(node.global_position.y)
+			var z_value = int(node.global_position.y)
+			
+			# Assign the calculated z_index to the node
+			node.z_index = z_value
 
 # Helper function to automatically register all children of a node
 func register_children_recursive(parent: Node):

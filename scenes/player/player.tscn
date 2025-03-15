@@ -58,13 +58,12 @@ animations = [{
 }]
 
 [node name="nose" type="CharacterBody2D"]
-y_sort_enabled = true
+top_level = true
 script = ExtResource("1_g2els")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_0s5j8")
 
 [node name="IsoNoseSprite" type="AnimatedSprite2D" parent="."]
-y_sort_enabled = true
 sprite_frames = SubResource("SpriteFrames_p47bc")
 animation = &"noseFacingSouthEast"

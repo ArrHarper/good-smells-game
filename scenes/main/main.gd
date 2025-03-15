@@ -38,24 +38,26 @@ func _ready():
 func get_map_boundaries():
 	# Default map boundaries for 21x21 map, anchored at top
 	var bounds = {
-		"min_x": -20,
-		"max_x": 20,
-		"min_y": -20,
-		"max_y": 20
+		"min_x": -5,
+		"max_x": 4,
+		"min_y": -5,
+		"max_y": 4
 	}
 	
-	# If we have a reference to the tilemap, try to get the actual boundaries
-	if has_node("IsometricMap") and $IsometricMap.has_method("get_used_rect"):
-		var map_rect = $IsometricMap.get_used_rect()
-		if map_rect:
-			# Use the tilemap's actual size
-			bounds.min_x = map_rect.position.x
-			bounds.min_y = map_rect.position.y
-			bounds.max_x = map_rect.position.x + map_rect.size.x - 1
-			bounds.max_y = map_rect.position.y + map_rect.size.y - 1
-			
-			if debug_mode:
-				print("Map boundaries from tilemap: ", bounds)
+	# If we have a reference to the IsometricMap and its FloorMap, try to get the actual boundaries
+	if has_node("IsometricMap") and $IsometricMap.has_node("FloorMap"):
+		var floor_map = $IsometricMap.get_node("FloorMap")
+		if floor_map and floor_map.has_method("get_used_rect"):
+			var map_rect = floor_map.get_used_rect()
+			if map_rect:
+				# Use the tilemap's actual size
+				bounds.min_x = map_rect.position.x
+				bounds.min_y = map_rect.position.y
+				bounds.max_x = map_rect.position.x + map_rect.size.x - 1
+				bounds.max_y = map_rect.position.y + map_rect.size.y - 1
+				
+				if debug_mode:
+					print("Map boundaries from FloorMap: ", bounds)
 	
 	return bounds
 
@@ -95,8 +97,8 @@ func position_smells_isometrically():
 		
 		# Convert from orthogonal to isometric coordinates if needed
 		var current_position = smell.global_position
-		var tile_pos = Iso.world_to_tile(current_position, TILE_WIDTH, TILE_HEIGHT)
-		var iso_pos = Iso.tile_to_world(tile_pos, TILE_WIDTH, TILE_HEIGHT)
+		var tile_pos = IsometricUtils.world_to_tile(current_position, TILE_WIDTH, TILE_HEIGHT)
+		var iso_pos = IsometricUtils.tile_to_world(tile_pos, TILE_WIDTH, TILE_HEIGHT)
 		
 		# Only update if there's a significant difference
 		if (current_position - iso_pos).length() > 5:
@@ -112,3 +114,60 @@ func position_smells_isometrically():
 func _on_smell_detected(smell_text, smell_type):
 	# Pass the smell message to the UI
 	ui_instance.show_smell_message(smell_text, smell_type) 
+
+# Get the floor tile at a specific world position
+# Returns the tile coordinates or null if no tile exists
+func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
+	if has_node("IsometricMap") and $IsometricMap.has_node("FloorMap"):
+		var floor_map = $IsometricMap.get_node("FloorMap")
+		if floor_map:
+			# Convert world position to tile coordinates
+			var tile_pos = IsometricUtils.world_to_tile(world_pos, TILE_WIDTH, TILE_HEIGHT)
+			
+			if debug_mode:
+				print("Checking for floor tile at: ", tile_pos, " (from world pos: ", world_pos, ")")
+				print("FloorMap class: ", floor_map.get_class())
+				print("Available methods: has_cell:", floor_map.has_method("has_cell"), 
+					", get_cell_source_id:", floor_map.has_method("get_cell_source_id"),
+					", get_cell:", floor_map.has_method("get_cell"))
+			
+			# First try: check if TileMapLayer has has_cell method (more reliable)
+			if floor_map.has_method("has_cell"):
+				if floor_map.has_cell(tile_pos):
+					if debug_mode:
+						print("Found floor tile at position using has_cell: ", tile_pos)
+					return tile_pos
+			# Second try: use get_cell_source_id method
+			elif floor_map.has_method("get_cell_source_id"):
+				# TileMapLayer's get_cell_source_id only expects one argument (the tile position)
+				var source_id = -1
+				# Wrap in try/catch in case the API has changed
+				if OS.is_debug_build():
+					source_id = floor_map.get_cell_source_id(tile_pos)
+				else:
+					# In production, use try/catch to avoid crashes
+					source_id = floor_map.call("get_cell_source_id", tile_pos)
+				
+				if source_id != -1:  # -1 means no tile
+					if debug_mode:
+						print("Found floor tile at position using get_cell_source_id: ", tile_pos)
+					return tile_pos
+			# Last resort: Try get_cell method
+			elif floor_map.has_method("get_cell"):
+				var cell_value = floor_map.get_cell(tile_pos)
+				if cell_value != -1:  # -1 usually means empty
+					if debug_mode:
+						print("Found floor tile at position using get_cell: ", tile_pos)
+					return tile_pos
+			
+			if debug_mode:
+				print("No floor tile found at position: ", tile_pos)
+	else:
+		if debug_mode:
+			if not has_node("IsometricMap"):
+				print("IsometricMap node not found!")
+			elif not $IsometricMap.has_node("FloorMap"):
+				print("FloorMap node not found in IsometricMap!")
+	
+	# Return an invalid position if no tile found
+	return Vector2i(-1, -1) 
