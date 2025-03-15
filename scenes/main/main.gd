@@ -58,9 +58,9 @@ func connect_smell_signals():
 func get_map_boundaries():
 	# Default map boundaries for 21x21 map, anchored at top
 	var bounds = {
-		"min_x": -5,
+		"min_x": - 5,
 		"max_x": 4,
-		"min_y": -5,
+		"min_y": - 5,
 		"max_y": 4
 	}
 	
@@ -132,8 +132,12 @@ func _on_smell_detected(smell_text, smell_type):
 	print("SMELL SIGNAL: - Type: '" + smell_type + "'")
 	print("SMELL SIGNAL: - UI instance exists: " + str(is_instance_valid(ui_instance)))
 	
-	# We don't immediately show the message as the smell animation will emit its
-	# own signal when it's ready to show the message
+	# We should show the message immediately instead of waiting for another signal
+	if ui_instance:
+		print("SMELL SIGNAL: Showing message via UI")
+		ui_instance.show_smell_message(smell_text, smell_type)
+	else:
+		print("SMELL SIGNAL ERROR: UI instance not found, can't display smell message")
 
 # Handle smell animation completed signal
 func _on_smell_animation_completed(smell_data):
@@ -169,8 +173,8 @@ func count_smell_objects():
 		"bad": 0,
 		"epic": 0,
 		"neutral": 0,
-		"detected": 0,  # Smells that have been found/detected
-		"collected": 0  # Smells that have been fully collected
+		"detected": 0, # Smells that have been found/detected
+		"collected": 0 # Smells that have been fully collected
 	}
 	
 	var smell_nodes = get_tree().get_nodes_in_group("smell")
@@ -203,7 +207,7 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 			if debug_mode:
 				print("Checking for floor tile at: ", tile_pos, " (from world pos: ", world_pos, ")")
 				print("FloorMap class: ", floor_map.get_class())
-				print("Available methods: has_cell:", floor_map.has_method("has_cell"), 
+				print("Available methods: has_cell:", floor_map.has_method("has_cell"),
 					", get_cell_source_id:", floor_map.has_method("get_cell_source_id"),
 					", get_cell:", floor_map.has_method("get_cell"))
 			
@@ -224,14 +228,14 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 					# In production, use try/catch to avoid crashes
 					source_id = floor_map.call("get_cell_source_id", tile_pos)
 				
-				if source_id != -1:  # -1 means no tile
+				if source_id != -1: # -1 means no tile
 					if debug_mode:
 						print("Found floor tile at position using get_cell_source_id: ", tile_pos)
 					return tile_pos
 			# Last resort: Try get_cell method
 			elif floor_map.has_method("get_cell"):
 				var cell_value = floor_map.get_cell(tile_pos)
-				if cell_value != -1:  # -1 usually means empty
+				if cell_value != -1: # -1 usually means empty
 					if debug_mode:
 						print("Found floor tile at position using get_cell: ", tile_pos)
 					return tile_pos
@@ -246,4 +250,4 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 				print("FloorMap node not found in IsometricMap!")
 	
 	# Return an invalid position if no tile found
-	return Vector2i(-1, -1) 
+	return Vector2i(-1, -1)

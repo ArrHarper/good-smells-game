@@ -40,35 +40,6 @@ text = "Smell Message Area"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SmellLabel" type="Label" parent="."]
-visible = false
-z_index = 50
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -192.0
-offset_top = -157.0
-offset_right = 195.0
-offset_bottom = -38.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_constants/outline_size = 3
-theme_override_constants/shadow_outline_size = 1
-theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="MessageTimer" type="Timer" parent="."]
-wait_time = 2.0
-one_shot = true
-
 [node name="TextureButton" type="TextureButton" parent="."]
 offset_left = 693.0
 offset_top = 316.0
@@ -94,5 +65,3 @@ text = "Debug"
 scroll_active = false
 shortcut_keys_enabled = false
 deselect_on_focus_loss_enabled = false
-
-[connection signal="timeout" from="MessageTimer" to="." method="_on_message_timer_timeout"]

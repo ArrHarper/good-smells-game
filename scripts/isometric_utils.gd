@@ -4,9 +4,9 @@ class_name IsometricUtils
 # Utility static class for handling isometric calculations
 # This is a singleton that can be loaded as an autoload in project settings
 
-# Default isometric tile dimensions
-const DEFAULT_TILE_WIDTH = 64
-const DEFAULT_TILE_HEIGHT = 32
+# Default tile dimensions - these should match the actual tile size used in the game
+const DEFAULT_TILE_WIDTH = 32
+const DEFAULT_TILE_HEIGHT = 16
 
 # Convert world position to isometric tile coordinates
 static func world_to_tile(world_pos: Vector2, tile_width: float = DEFAULT_TILE_WIDTH, tile_height: float = DEFAULT_TILE_HEIGHT) -> Vector2i:
@@ -41,26 +41,26 @@ static func get_z_index_for_position(pos: Vector2) -> int:
 
 # Check if a position is within isometric boundaries
 static func is_within_boundaries(
-	pos: Vector2, 
-	min_x: int, max_x: int, 
+	pos: Vector2,
+	min_x: int, max_x: int,
 	min_y: int, max_y: int,
-	tile_width: float = DEFAULT_TILE_WIDTH, 
+	tile_width: float = DEFAULT_TILE_WIDTH,
 	tile_height: float = DEFAULT_TILE_HEIGHT
 ) -> bool:
 	var tile_pos = world_to_tile(pos, tile_width, tile_height)
 	return (
-		tile_pos.x >= min_x and 
-		tile_pos.x <= max_x and 
-		tile_pos.y >= min_y and 
+		tile_pos.x >= min_x and
+		tile_pos.x <= max_x and
+		tile_pos.y >= min_y and
 		tile_pos.y <= max_y
 	)
 
 # Get closest valid position within boundaries
 static func get_valid_position(
-	pos: Vector2, 
-	min_x: int, max_x: int, 
+	pos: Vector2,
+	min_x: int, max_x: int,
 	min_y: int, max_y: int,
-	tile_width: float = DEFAULT_TILE_WIDTH, 
+	tile_width: float = DEFAULT_TILE_WIDTH,
 	tile_height: float = DEFAULT_TILE_HEIGHT
 ) -> Vector2:
 	var tile_pos = world_to_tile(pos, tile_width, tile_height)
@@ -86,12 +86,12 @@ static func cart_to_iso(cart_pos: Vector2, tile_width: float = DEFAULT_TILE_WIDT
 # Helper for getting isometric neighbors of a tile
 static func get_tile_neighbors(tile_coords: Vector2i) -> Array[Vector2i]:
 	var neighbors: Array[Vector2i] = []
-	neighbors.append(Vector2i(tile_coords.x + 1, tile_coords.y))  # East
-	neighbors.append(Vector2i(tile_coords.x - 1, tile_coords.y))  # West
-	neighbors.append(Vector2i(tile_coords.x, tile_coords.y + 1))  # South
-	neighbors.append(Vector2i(tile_coords.x, tile_coords.y - 1))  # North
+	neighbors.append(Vector2i(tile_coords.x + 1, tile_coords.y)) # East
+	neighbors.append(Vector2i(tile_coords.x - 1, tile_coords.y)) # West
+	neighbors.append(Vector2i(tile_coords.x, tile_coords.y + 1)) # South
+	neighbors.append(Vector2i(tile_coords.x, tile_coords.y - 1)) # North
 	return neighbors
 
 # Get the isometric distance between two tiles (Manhattan distance)
 static func get_isometric_distance(tile_a: Vector2i, tile_b: Vector2i) -> int:
-	return abs(tile_a.x - tile_b.x) + abs(tile_a.y - tile_b.y) 
+	return abs(tile_a.x - tile_b.x) + abs(tile_a.y - tile_b.y)

@@ -1,18 +1,10 @@
 extends CanvasLayer
 
-# Animation properties
-var message_animation_time = 0.0
-var message_float_speed = 2.0
-var message_float_height = 5.0
-
 # Debug properties
 var debug_update_timer = 0.0
-var debug_update_interval = 0.1  # Update debug text 10 times per second
+var debug_update_interval = 0.1 # Update debug text 10 times per second
 
 func _ready():
-	# Hide smell message initially
-	$SmellLabel.visible = false
-	
 	# Make sure the window indicator is visible
 	if has_node("SmellWindowIndicator"):
 		$SmellWindowIndicator.visible = true
@@ -24,26 +16,6 @@ func _ready():
 	set_process(true)
 
 func _process(delta):
-	# Animate the smell message if visible
-	if $SmellLabel.visible:
-		message_animation_time += delta
-		
-		# Create a gentle floating animation
-		var y_offset = -sin(message_animation_time * message_float_speed) * message_float_height
-		$SmellLabel.position.y = -157.0 + y_offset  # Base position matches the offset_top in the scene
-		
-		# Safety check - ensure the text remains visible
-		if $SmellLabel.modulate.a < 1.0:
-			$SmellLabel.modulate.a = 1.0
-		
-		# Hide the indicator message when an actual smell message is showing
-		if has_node("SmellWindowIndicator/IndicatorLabel"):
-			$SmellWindowIndicator/IndicatorLabel.visible = false
-	else:
-		# Show the indicator label when no smell message is visible
-		if has_node("SmellWindowIndicator/IndicatorLabel"):
-			$SmellWindowIndicator/IndicatorLabel.visible = true
-	
 	# Update debug information
 	debug_update_timer += delta
 	if debug_update_timer >= debug_update_interval:
@@ -53,7 +25,7 @@ func _process(delta):
 		var player = get_node_or_null("/root/Main/nose")
 		if player:
 			var player_pos = player.global_position
-			var tile_pos = IsometricUtils.world_to_tile(player_pos, 32, 16)  # Using constants from player
+			var tile_pos = IsometricUtils.world_to_tile(player_pos, 32, 16) # Using correct tile dimensions
 			var z_index = player.z_index
 			update_debug_text(player_pos, tile_pos, z_index)
 
@@ -87,70 +59,78 @@ func update_debug_text(player_pos, tile_pos, z_index):
 		debug_text.text = text
 
 func show_smell_message(text, type):
-	# Debug logging
-	print("UI received smell message: '" + text + "' of type '" + type + "'")
+	# Remove any existing DebugLabel if it exists
+	var existing_debug = get_node_or_null("DebugLabel")
+	if existing_debug:
+		existing_debug.queue_free()
 	
-	# Reset animation
-	message_animation_time = 0.0
+	# Get the SmellWindowIndicator
+	var indicator = get_node_or_null("SmellWindowIndicator")
+	if not indicator:
+		print("ERROR: SmellWindowIndicator not found")
+		return
 	
-	# Ensure the label is reset
-	$SmellLabel.modulate = Color(1, 1, 1, 1)
-
-	# Set the message text
-	$SmellLabel.text = text
-	$SmellLabel.visible = true
-	print("SmellLabel is now visible with text: '" + text + "'")
+	# Create a new label for the smell message
+	var message_label = Label.new()
+	message_label.name = "SmellMessageLabel"
+	message_label.size = Vector2(400, 135) # Match SmellWindowIndicator size
+	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	message_label.add_theme_font_size_override("font_size", 24)
 	
-	# Make the text appear with a slight scaling effect
-	var tween = create_tween()
-	$SmellLabel.scale = Vector2(0.8, 0.8)
-	tween.tween_property($SmellLabel, "scale", Vector2(1.0, 1.0), 0.3)
-	print("Started SmellLabel animation tween")
-	
-	# Change color of window indicator based on smell type
-	if has_node("SmellWindowIndicator"):
-		var indicator_color = Color(0.2, 0.2, 0.2, 0.3)  # Default
-		match type:
-			"good":
-				indicator_color = Color(0.2, 0.7, 0.2, 0.3)  # Light green
-			"bad":
-				indicator_color = Color(0.7, 0.2, 0.2, 0.3)  # Light red
-			"epic":
-				indicator_color = Color(0.7, 0.4, 0.0, 0.3)  # Light orange
-				
-		$SmellWindowIndicator.color = indicator_color
-	
-	# Change color based on type
+	# Set text and color based on smell type
+	message_label.text = text
 	match type:
 		"good":
-			$SmellLabel.add_theme_color_override("font_color", Color(0, 1, 0))
-			print("Set SmellLabel color to green (good)")
+			message_label.add_theme_color_override("font_color", Color(0, 1, 0))
+			indicator.color = Color(0.2, 0.7, 0.2, 0.3)
 		"bad":
-			$SmellLabel.add_theme_color_override("font_color", Color(1, 0, 0))
-			print("Set SmellLabel color to red (bad)")
+			message_label.add_theme_color_override("font_color", Color(1, 0, 0))
+			indicator.color = Color(0.7, 0.2, 0.2, 0.3)
 		"epic":
-			$SmellLabel.add_theme_color_override("font_color", Color(0.8, 0.4, 0))
-			print("Set SmellLabel color to orange (epic)")
+			message_label.add_theme_color_override("font_color", Color(0.8, 0.4, 0))
+			indicator.color = Color(0.7, 0.4, 0.0, 0.3)
 		_:
-			$SmellLabel.add_theme_color_override("font_color", Color(1, 1, 1))
-			print("Set SmellLabel color to white (neutral)")
+			message_label.add_theme_color_override("font_color", Color(1, 1, 1))
+			indicator.color = Color(0.2, 0.2, 0.2, 0.3)
 	
-	# Hide message after a delay
-	$MessageTimer.start()
-	print("Started MessageTimer for " + str($MessageTimer.wait_time) + " seconds")
-
-func _on_message_timer_timeout():
-	# Fade out the message
-	var tween = create_tween()
-	tween.tween_property($SmellLabel, "modulate", Color(1, 1, 1, 0), 0.5)
-	tween.tween_callback(func():
-		$SmellLabel.visible = false
-		$SmellLabel.modulate = Color(1, 1, 1, 1)  # Reset for next time
-		
-		# Reset indicator color
-		if has_node("SmellWindowIndicator"):
-			$SmellWindowIndicator.color = Color(0.2, 0.2, 0.2, 0.2)
+	# Add shadow and outline effects for better visibility
+	message_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	message_label.add_theme_constant_override("shadow_offset_x", 2)
+	message_label.add_theme_constant_override("shadow_offset_y", 2)
+	message_label.add_theme_constant_override("outline_size", 3)
+	message_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	
+	# Add the label to the SmellWindowIndicator
+	indicator.add_child(message_label)
+	
+	# Hide the default indicator label if it exists
+	var indicator_label = indicator.get_node_or_null("IndicatorLabel")
+	if indicator_label:
+		indicator_label.visible = false
+	
+	# Create a timer to hide the message
+	var timer = Timer.new()
+	timer.wait_time = 2.0
+	timer.one_shot = true
+	add_child(timer)
+	timer.timeout.connect(func():
+		# Fade out the message
+		var tween = create_tween()
+		tween.tween_property(message_label, "modulate", Color(1, 1, 1, 0), 0.5)
+		tween.tween_callback(func():
+			message_label.queue_free()
+			# Reset indicator color
+			indicator.color = Color(0.2, 0.2, 0.2, 0.2)
+			# Show the indicator label again
+			if indicator_label:
+				indicator_label.visible = true
+		)
+		timer.queue_free()
 	)
+	timer.start()
+	
+	print("Displayed smell message in SmellWindowIndicator: " + text)
 
 # Test function to verify smell messages work
 func test_smell_message():
