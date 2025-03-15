@@ -15,11 +15,11 @@ var particle_system
 signal animation_completed(smell_data) # Signal to notify when animation is done
 
 # Isometric position adjustments - helps with correct positioning on isometric grid
-@export var isometric_height_offset: float = 0.0  # Positive values will raise the smell's visual position
+@export var isometric_height_offset: float = 0.0 # Positive values will raise the smell's visual position
 
 # Animation timing
-var animation_duration = 1.6  # Total animation time in seconds
-var message_delay = 0.8      # Time to wait before showing the message
+var animation_duration = 1.6 # Total animation time in seconds
+var message_delay = 0.8 # Time to wait before showing the message
 
 func _ready():
 	# Add to smell group so player can detect it
@@ -39,11 +39,6 @@ func _ready():
 	# Hide particles initially - set the visibility directly
 	if particle_system:
 		particle_system.emitting = false
-		
-	# Apply isometric height offset if needed
-	if isometric_height_offset != 0.0:
-		if particle_system:
-			particle_system.position.y = -isometric_height_offset
 	
 	# Connect signal
 	connect("body_entered", _on_body_entered)
@@ -58,22 +53,22 @@ func setup_particles():
 	
 	# Configure the particle system with enhanced properties
 	particles_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-	particles_material.emission_sphere_radius = 15.0  # Increased from 10.0
+	particles_material.emission_sphere_radius = 15.0 # Increased from 10.0
 	particles_material.direction = Vector3(0, -1, 0)
-	particles_material.spread = 60.0  # Increased from 45.0
-	particles_material.gravity = Vector3(0, -30, 0)  # Stronger upward gravity
-	particles_material.initial_velocity_min = 20.0  # Increased from 10.0
-	particles_material.initial_velocity_max = 40.0  # Increased from 20.0
+	particles_material.spread = 60.0 # Increased from 45.0
+	particles_material.gravity = Vector3(0, -30, 0) # Stronger upward gravity
+	particles_material.initial_velocity_min = 20.0 # Increased from 10.0
+	particles_material.initial_velocity_max = 40.0 # Increased from 20.0
 	
 	# Set color based on smell type
 	if smell_type == "good":
-		particles_material.color = Color(0.2, 0.8, 0.2, 0.8)  # More vivid green
+		particles_material.color = Color(0.2, 0.8, 0.2, 0.8) # More vivid green
 	elif smell_type == "bad":
-		particles_material.color = Color(0.8, 0.2, 0.2, 0.8)  # Red
+		particles_material.color = Color(0.8, 0.2, 0.2, 0.8) # Red
 	elif smell_type == "epic":
-		particles_material.color = Color(0.8, 0.2, 0.8, 0.8)  # Purple
+		particles_material.color = Color(0.8, 0.2, 0.8, 0.8) # Purple
 	else:
-		particles_material.color = Color(0.8, 0.8, 0.8, 0.8)  # Light gray for neutral
+		particles_material.color = Color(0.8, 0.8, 0.8, 0.8) # Light gray for neutral
 	
 	# Add scale variation to particles
 	particles_material.scale_min = 1.0
@@ -86,9 +81,9 @@ func setup_particles():
 	
 	# Apply material and add to scene
 	particle_system.process_material = particles_material
-	particle_system.amount = 24  # Increased from 16
-	particle_system.lifetime = 2.5  # Slightly longer lifetime
-	particle_system.explosiveness = 0.2  # Add some burst effect
+	particle_system.amount = 24 # Increased from 16
+	particle_system.lifetime = 2.5 # Slightly longer lifetime
+	particle_system.explosiveness = 0.2 # Add some burst effect
 	particle_system.one_shot = false
 	particle_system.local_coords = false
 	
@@ -121,13 +116,13 @@ func detect():
 			# Set the color explicitly based on smell type
 			var material = particle_system.process_material
 			if smell_type == "good":
-				material.color = Color(0.2, 0.8, 0.2, 0.8)  # More vivid green
+				material.color = Color(0.2, 0.8, 0.2, 0.8) # More vivid green
 			elif smell_type == "bad":
-				material.color = Color(0.8, 0.2, 0.2, 0.8)  # Red
+				material.color = Color(0.8, 0.2, 0.2, 0.8) # Red
 			elif smell_type == "epic":
-				material.color = Color(0.8, 0.2, 0.8, 0.8)  # Purple
+				material.color = Color(0.8, 0.2, 0.8, 0.8) # Purple
 			else:
-				material.color = Color(0.8, 0.8, 0.8, 0.8)  # Light gray for neutral
+				material.color = Color(0.8, 0.8, 0.8, 0.8) # Light gray for neutral
 			
 			# Start emitting particles immediately
 			particle_system.emitting = true
@@ -143,8 +138,17 @@ func detect():
 			# First rise up more dramatically
 			tween.tween_property(particle_system, "position", mid_pos, animation_duration * 0.5)
 			
-			# Emit the smell signal immediately with smell data
-			emit_signal("animation_completed", {"message": smell_message, "type": smell_type})
+			# Create a timer to delay the message
+			var timer = Timer.new()
+			timer.wait_time = message_delay
+			timer.one_shot = true
+			add_child(timer)
+			timer.timeout.connect(func():
+				# Emit the smell signal after delay
+				emit_signal("animation_completed", {"message": smell_message, "type": smell_type})
+				timer.queue_free()
+			)
+			timer.start()
 			
 			# Then continue rising while fading out
 			tween.tween_property(particle_system, "position", end_pos, animation_duration * 0.5)

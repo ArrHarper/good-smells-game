@@ -13,6 +13,10 @@ func _ready():
 	# Hide smell message initially
 	$SmellLabel.visible = false
 	
+	# Make sure the window indicator is visible
+	if has_node("SmellWindowIndicator"):
+		$SmellWindowIndicator.visible = true
+	
 	# Initialize debug text if it exists
 	update_debug_text(Vector2.ZERO, Vector2i.ZERO, 0)
 	
@@ -26,7 +30,19 @@ func _process(delta):
 		
 		# Create a gentle floating animation
 		var y_offset = -sin(message_animation_time * message_float_speed) * message_float_height
-		$SmellLabel.position.y = -250 + y_offset  # Base position is -250
+		$SmellLabel.position.y = -157.0 + y_offset  # Base position matches the offset_top in the scene
+		
+		# Safety check - ensure the text remains visible
+		if $SmellLabel.modulate.a < 1.0:
+			$SmellLabel.modulate.a = 1.0
+		
+		# Hide the indicator message when an actual smell message is showing
+		if has_node("SmellWindowIndicator/IndicatorLabel"):
+			$SmellWindowIndicator/IndicatorLabel.visible = false
+	else:
+		# Show the indicator label when no smell message is visible
+		if has_node("SmellWindowIndicator/IndicatorLabel"):
+			$SmellWindowIndicator/IndicatorLabel.visible = true
 	
 	# Update debug information
 	debug_update_timer += delta
@@ -76,6 +92,9 @@ func show_smell_message(text, type):
 	
 	# Reset animation
 	message_animation_time = 0.0
+	
+	# Ensure the label is reset
+	$SmellLabel.modulate = Color(1, 1, 1, 1)
 
 	# Set the message text
 	$SmellLabel.text = text
@@ -87,6 +106,19 @@ func show_smell_message(text, type):
 	$SmellLabel.scale = Vector2(0.8, 0.8)
 	tween.tween_property($SmellLabel, "scale", Vector2(1.0, 1.0), 0.3)
 	print("Started SmellLabel animation tween")
+	
+	# Change color of window indicator based on smell type
+	if has_node("SmellWindowIndicator"):
+		var indicator_color = Color(0.2, 0.2, 0.2, 0.3)  # Default
+		match type:
+			"good":
+				indicator_color = Color(0.2, 0.7, 0.2, 0.3)  # Light green
+			"bad":
+				indicator_color = Color(0.7, 0.2, 0.2, 0.3)  # Light red
+			"epic":
+				indicator_color = Color(0.7, 0.4, 0.0, 0.3)  # Light orange
+				
+		$SmellWindowIndicator.color = indicator_color
 	
 	# Change color based on type
 	match type:
@@ -114,4 +146,26 @@ func _on_message_timer_timeout():
 	tween.tween_callback(func():
 		$SmellLabel.visible = false
 		$SmellLabel.modulate = Color(1, 1, 1, 1)  # Reset for next time
+		
+		# Reset indicator color
+		if has_node("SmellWindowIndicator"):
+			$SmellWindowIndicator.color = Color(0.2, 0.2, 0.2, 0.2)
 	)
+
+# Test function to verify smell messages work
+func test_smell_message():
+	# Create a timer to wait 1 second before showing test message
+	var timer = Timer.new()
+	timer.wait_time = 1.0
+	timer.one_shot = true
+	add_child(timer)
+	
+	# Connect timeout to show a test message
+	timer.timeout.connect(func():
+		print("TEST: Showing test smell message")
+		show_smell_message("TEST MESSAGE: This is a test smell!", "good")
+		timer.queue_free()
+	)
+	
+	# Start the timer
+	timer.start()
