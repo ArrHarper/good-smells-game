@@ -21,6 +21,7 @@ y_sort_enabled = true
 script = ExtResource("1_0wfyh")
 
 [node name="IsometricMap" parent="." instance=ExtResource("6_ismap")]
+z_index = -1
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -39,22 +40,23 @@ z_index = 10
 position = Vector2(33, -69)
 
 [node name="GoodSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(48, 32)
+position = Vector2(73, 30)
 smell_name = "Flowers"
 smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
-points = 10
-particles_color = Color(0, 1, 0, 1)
+points = 25
+particles_color = Color(0.998525, 0.509175, 0.722968, 1)
 
 [node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(80, 48)
+position = Vector2(-38, -44)
 smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
-points = -5
-particles_color = Color(1, 0, 0, 1)
+points = 25
+particles_color = Color(0.226262, 0.124142, 0.0104875, 1)
 
 [node name="EpicSmell1" parent="." instance=ExtResource("4_lfxvs")]
+z_index = 1
 position = Vector2(128, 64)
 smell_name = "Chocolate"
 smell_type = "epic"

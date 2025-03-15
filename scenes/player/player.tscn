@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b0dw3hyhtyow2"]
+[gd_scene load_steps=13 format=3 uid="uid://b0dw3hyhtyow2"]
 
 [ext_resource type="Script" uid="uid://de17vp682kddm" path="res://scenes/player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://cgb1y3hvwtge7" path="res://assets/images/nose-iso.png" id="3_gmlin"]
@@ -21,6 +21,22 @@ region = Rect2(0, 0, 32, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_dovo2"]
 atlas = ExtResource("3_gmlin")
 region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_smell_ne"]
+atlas = ExtResource("3_gmlin")
+region = Rect2(96, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_smell_nw"]
+atlas = ExtResource("3_gmlin")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_smell_se"]
+atlas = ExtResource("3_gmlin")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_smell_sw"]
+atlas = ExtResource("3_gmlin")
+region = Rect2(32, 32, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_p47bc"]
 animations = [{
@@ -54,6 +70,38 @@ animations = [{
 }],
 "loop": true,
 "name": &"noseFacingSouthWest",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_smell_ne")
+}],
+"loop": true,
+"name": &"smellNorthEast",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_smell_nw")
+}],
+"loop": true,
+"name": &"smellNorthWest",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_smell_se")
+}],
+"loop": true,
+"name": &"smellSouthEast",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_smell_sw")
+}],
+"loop": true,
+"name": &"smellSouthWest",
 "speed": 5.0
 }]
 

@@ -27,6 +27,10 @@ func register_node(node: Node2D):
 		# Connect tree_exiting signal to automatically unregister
 		node.connect("tree_exiting", _on_node_tree_exiting.bind(node))
 
+# Add sorted object - alias for register_node for consistency
+func add_sorted_object(node: Node2D):
+	register_node(node)  # Use existing functionality
+
 # Unregister a node from Y-sorting
 func unregister_node(node: Node2D):
 	if sorted_nodes.has(node):

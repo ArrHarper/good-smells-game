@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b4n6ww4nk4n8q"
-path="res://.godot/imported/2dblock - Copy.png-66c8d4819b3e15833229a1c372caf67a.ctex"
+uid="uid://bef2upm3o83ar"
+path="res://.godot/imported/buggo.png-6d05d8d78609116fc596ea28d419a72b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/2dblock - Copy.png"
-dest_files=["res://.godot/imported/2dblock - Copy.png-66c8d4819b3e15833229a1c372caf67a.ctex"]
+source_file="res://assets/images/buggo.png"
+dest_files=["res://.godot/imported/buggo.png-6d05d8d78609116fc596ea28d419a72b.ctex"]
 
 [params]
 

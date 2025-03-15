@@ -10,7 +10,7 @@ Players navigate a floating nose through different map environments, sniffing ar
 
 ## Technology Stack
 
-We are currently building this game using the Godot engine (version 4.4). A previous prototype was built in the Defold engine, but we have since switched to Godot.
+This game is built using the Godot engine (version 4.4). We have fully implemented a custom isometric system with proper depth sorting and movement controls.
 
 ## Project Structure
 
@@ -26,65 +26,64 @@ The project follows Godot best practices with a clear organization:
 /assets/                 - Game assets
   /images/               - Sprites and textures
   /fonts/                - Typography
-  /project files/        - Source files for assets
+  /project-files/        - Source files for assets
 /scripts/                - Shared utility scripts
-  /globals/              - Global scripts and autoloads
+  /globals/             - Global scripts and autoloads
 ```
 
 ## Key Game Elements
 
 ### Player Character
 
-- A giant floating nose that serves as the main character
-- Movement controls allow navigation across the isometric map
-- "Sniffing" action to detect and collect nearby smells
+- A giant floating nose with smooth isometric movement
+- Implemented animation system with proper direction facing
+- "Sniffing" action that detects nearby smell objects
+- Float animation for visual appeal
 
 ### Smell System
 
-- **Good Smells**: Positive point values, required to complete levels
-- **Bad Smells**: Negative point values, to be avoided
-- **Epic Smells**: Special collectibles that add to a collection and provide unique benefits
+- Extensible base smell class with customizable properties
+- Four smell types: good, bad, epic, and neutral
+- Each smell has its own visual particle system
+- Collision-based detection system with custom messaging
 
-### Environments
+### Isometric System
 
-- Various isometric map layouts with different themes
-- Each environment features unique sets of smells and challenges
-- Progressive difficulty as players advance through environments
+- Custom isometric utilities for coordinate conversion and world positioning
+- Z-index based depth sorting system for proper object overlapping
+- Efficient boundary management for map navigation
+- Proper tile-based isometric movement
 
 ### Game Mechanics
 
-- **Smell Detection**: Nose detects scents within a certain radius
-- **Collection System**: Collect good smells while avoiding bad ones
-- **Score System**: Track points based on collected smells
-- **Win Condition**: Collect all good smells in an environment to complete the level
+- **Smell Detection**: Implemented collision and proximity-based detection
+- **UI Feedback**: Visual and text feedback for smell detection
+- **Isometric Navigation**: Smooth movement across the isometric tilemap
+- **Visual Effects**: Particle systems for smell visualization
 
-### Progression Elements
+## Current Progress
 
-- Unlock new environments by completing previous levels
-- Discover and collect epic smells to gain special abilities
-- Possible upgrades for the nose (extended sniff range, faster movement)
+- Fully functional isometric engine with proper sorting and movement
+- Complete player character with animation and smell detection
+- Extensible smell object system with different types and visual effects
+- Flatmap implementation with tile-based navigation
+- Core game loop with smell detection and collection
+- Basic UI system for player feedback
+- Title screen with game flow management
 
-## Technical Implementation
+## Next Development Steps
 
-### Current Progress
-
-- Basic isometric tileset implemented
-- Player character with movement and smell detection
-- Smell object system with different types (good, bad, epic)
-- UI feedback for smell detection
+- Implementing level completion conditions
+- Adding more varied smell types and their unique effects
+- Creating additional levels with increasing complexity
+- Implementing a score and progress tracking system
+- Adding sound effects and music
+- Enhancing visual effects and animations
 
 ## Controls
 
-- **Arrow Keys**: Move the nose character
-- **Space**: Activate smell detection
-
-## Art Direction
-
-The game features a colorful, lighthearted aesthetic with charming visual representations of different smells. Particle effects are used to visualize scent trails and collection moments.
-
-## Target Audience
-
-Casual gamers of all ages who enjoy relaxed puzzle experiences with collection mechanics. The quirky premise and accessible gameplay make it suitable for short play sessions.
+- **Arrow Keys**: Move the nose character in isometric space
+- **Space**: Activate smell detection action
 
 ## Development
 
@@ -95,3 +94,30 @@ To contribute to this project:
 3. Follow the established project structure for new features
 4. Keep scripts with their associated scenes
 5. Use the smell base class for creating new smell types
+
+## Technical Implementation Notes
+
+### Isometric System
+
+We've implemented a custom isometric system with the following components:
+
+- `isometric_utils.gd`: Utility class for coordinate conversions and calculations
+- `isometric_sorter.gd`: Handles proper rendering order of objects in isometric space
+
+### Player Movement
+
+The player movement system handles:
+
+- Direction-based animation
+- Boundary checking
+- Proper isometric conversion for intuitive controls
+- Smooth movement with proper depth sorting
+
+### Smell Objects
+
+Smell objects feature:
+
+- Customizable particle effects
+- Type-based behaviors and point values
+- Detection radius and interaction system
+- Animation for collection effects

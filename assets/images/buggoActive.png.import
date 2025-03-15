@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by51yisrvuakr"
-path="res://.godot/imported/2block-smelled.png-f5cbfab27546dc1834fd62bf32e4b19e.ctex"
+uid="uid://ds3lplud4scfc"
+path="res://.godot/imported/buggoActive.png-1b44d935cb0c111cef481d632bd32fa6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/2block-smelled.png"
-dest_files=["res://.godot/imported/2block-smelled.png-f5cbfab27546dc1834fd62bf32e4b19e.ctex"]
+source_file="res://assets/images/buggoActive.png"
+dest_files=["res://.godot/imported/buggoActive.png-1b44d935cb0c111cef481d632bd32fa6.ctex"]
 
 [params]
 

@@ -1,20 +1,21 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://dhdghvh01i7hf"]
 
-[ext_resource type="Script" path="res://scenes/UI/mainUI.gd" id="1_pdh8v"]
+[ext_resource type="Script" uid="uid://bvgh3fyb255jv" path="res://scenes/UI/mainUI.gd" id="1_pdh8v"]
+[ext_resource type="Texture2D" uid="uid://ds3lplud4scfc" path="res://assets/images/buggoActive.png" id="2_n6wm8"]
 
 [node name="UI" type="CanvasLayer"]
 script = ExtResource("1_pdh8v")
 
 [node name="SmellLabel" type="Label" parent="."]
-anchors_preset = 7
+anchors_preset = -1
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.794
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -250.0
-offset_right = 100.0
-offset_bottom = -40.0
+anchor_bottom = 0.794
+offset_left = -191.0
+offset_top = -33.4
+offset_right = 196.0
+offset_bottom = 33.6
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_font_sizes/font_size = 18
@@ -25,4 +26,30 @@ vertical_alignment = 1
 wait_time = 2.0
 one_shot = true
 
-[connection signal="timeout" from="MessageTimer" to="." method="_on_message_timer_timeout"] 
+[node name="TextureButton" type="TextureButton" parent="."]
+offset_left = 693.0
+offset_top = 316.0
+offset_right = 729.0
+offset_bottom = 345.0
+toggle_mode = true
+action_mode = 0
+texture_normal = ExtResource("2_n6wm8")
+ignore_texture_size = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureButton"]
+layout_mode = 0
+offset_left = -24.0
+offset_top = 41.0
+offset_right = 158.0
+offset_bottom = 262.0
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_offset_x = 1
+theme_override_font_sizes/normal_font_size = 12
+text = "Debug"
+scroll_active = false
+shortcut_keys_enabled = false
+deselect_on_focus_loss_enabled = false
+
+[connection signal="timeout" from="MessageTimer" to="." method="_on_message_timer_timeout"]

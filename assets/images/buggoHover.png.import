@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://305iyyxnxiy3"
-path="res://.godot/imported/2dblock.png-4760d2e6d7612a2cae7c40b5f8668492.ctex"
+uid="uid://buek3cr6n3l5u"
+path="res://.godot/imported/buggoHover.png-f7d57d5ff590bf195e62fedfa72c9096.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/2dblock.png"
-dest_files=["res://.godot/imported/2dblock.png-4760d2e6d7612a2cae7c40b5f8668492.ctex"]
+source_file="res://assets/images/buggoHover.png"
+dest_files=["res://.godot/imported/buggoHover.png-f7d57d5ff590bf195e62fedfa72c9096.ctex"]
 
 [params]
 

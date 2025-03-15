@@ -21,8 +21,16 @@ func _ready():
 	add_child(ui_instance)
 	
 	# Connect player's smell detection signal to UI
-	if $nose:
+	if has_node("nose"):
 		$nose.connect("smell_detected", _on_smell_detected)
+		if debug_mode:
+			print("Connected player smell detection signal to UI")
+	else:
+		if debug_mode:
+			print("Error: Player node 'nose' not found")
+	
+	# Connect to smell animation completed signals
+	connect_smell_signals()
 		
 	# Position smells on the isometric map if needed
 	position_smells_isometrically()
@@ -33,6 +41,18 @@ func _ready():
 	if debug_mode:
 		print("Main scene ready with isometric map")
 		print("Map boundaries: ", get_map_boundaries())
+		print("Available smell objects:", count_smell_objects())
+
+# Connect to all smell objects' animation_completed signals
+func connect_smell_signals():
+	var smell_nodes = get_tree().get_nodes_in_group("smell")
+	
+	for smell in smell_nodes:
+		if smell.has_signal("animation_completed") and not smell.is_connected("animation_completed", _on_smell_animation_completed):
+			smell.connect("animation_completed", _on_smell_animation_completed)
+			
+			if debug_mode:
+				print("Connected to smell animation signal: " + smell.smell_name)
 
 # Function to get map boundaries - can be called by child nodes
 func get_map_boundaries():
@@ -48,72 +68,128 @@ func get_map_boundaries():
 	if has_node("IsometricMap") and $IsometricMap.has_node("FloorMap"):
 		var floor_map = $IsometricMap.get_node("FloorMap")
 		if floor_map and floor_map.has_method("get_used_rect"):
-			var map_rect = floor_map.get_used_rect()
-			if map_rect:
-				# Use the tilemap's actual size
-				bounds.min_x = map_rect.position.x
-				bounds.min_y = map_rect.position.y
-				bounds.max_x = map_rect.position.x + map_rect.size.x - 1
-				bounds.max_y = map_rect.position.y + map_rect.size.y - 1
-				
-				if debug_mode:
-					print("Map boundaries from FloorMap: ", bounds)
+			var rect = floor_map.get_used_rect()
+			bounds = {
+				"min_x": rect.position.x,
+				"max_x": rect.position.x + rect.size.x - 1,
+				"min_y": rect.position.y,
+				"max_y": rect.position.y + rect.size.y - 1
+			}
 	
 	return bounds
 
-# Initialize the isometric sorter for proper Z-index sorting
+# Function to position all smell objects on the isometric map properly
+func position_smells_isometrically():
+	# Get all smell objects in the scene
+	var smell_nodes = get_tree().get_nodes_in_group("smell")
+	
+	if smell_nodes.is_empty():
+		# If no smell nodes were found in the group, try to find them by type
+		# This handles cases where smell objects might not be in the correct group yet
+		var all_nodes = get_tree().get_nodes_in_group("smell")
+		for node in all_nodes:
+			if node is Smell:
+				smell_nodes.append(node)
+		
+		# Also find any child smell nodes in this scene
+		for child in get_children():
+			if child is Smell:
+				smell_nodes.append(child)
+	
+	if debug_mode:
+		print("Found ", smell_nodes.size(), " smell objects to position")
+	
+	# Adjust z-index for each smell based on its isometric position
+	for smell in smell_nodes:
+		# Set proper z-index based on y position
+		smell.z_index = int(smell.position.y)
+		
+		if debug_mode:
+			print("Positioned smell: ", smell.name, " at z-index ", smell.z_index)
+
+# Function to initialize the isometric sorting system
 func initialize_isometric_sorting():
 	if has_node("IsometricSorter"):
 		var sorter = $IsometricSorter
 		
-		# Register the player node
+		# Add all objects that should be sorted (player, smells, etc.)
 		if has_node("nose"):
-			sorter.register_node($nose)
-		
-		# Register all smell nodes
-		for smell in get_tree().get_nodes_in_group("smells"):
-			if smell is Node2D:
-				sorter.register_node(smell)
+			sorter.add_sorted_object($nose)
+			
+		# Add smell objects
+		var smell_nodes = get_tree().get_nodes_in_group("smell")
+		for smell in smell_nodes:
+			sorter.add_sorted_object(smell)
 		
 		if debug_mode:
-			print("Isometric sorter initialized")
+			print("Initialized isometric sorting with objects")
 
-# Position smells on the isometric grid when game starts
-func position_smells_isometrically():
-	# Find all smell nodes in the scene
-	var smells = get_tree().get_nodes_in_group("smells")
-	if smells.size() == 0:
-		# If no smells are in a group, find them by class
-		for child in get_children():
-			if child is Smell:
-				smells.append(child)
-				# Add to group for future reference
-				child.add_to_group("smells")
-	
-	# Adjust smell positions for isometric grid if needed
-	for smell in smells:
-		# Enable Y-sorting for proper isometric depth
-		smell.y_sort_enabled = true
-		
-		# Convert from orthogonal to isometric coordinates if needed
-		var current_position = smell.global_position
-		var tile_pos = IsometricUtils.world_to_tile(current_position, TILE_WIDTH, TILE_HEIGHT)
-		var iso_pos = IsometricUtils.tile_to_world(tile_pos, TILE_WIDTH, TILE_HEIGHT)
-		
-		# Only update if there's a significant difference
-		if (current_position - iso_pos).length() > 5:
-			smell.global_position = iso_pos
-			if debug_mode:
-				print("Repositioned smell from ", current_position, " to ", iso_pos)
-		
-		# Log positions for debugging
-		if debug_mode:
-			print("Smell positioned at: ", smell.global_position)
-
-# Called when the player detects a smell
+# Handle smell detection from player
 func _on_smell_detected(smell_text, smell_type):
-	# Pass the smell message to the UI
-	ui_instance.show_smell_message(smell_text, smell_type) 
+	# Debug output with more details - always show regardless of debug_mode
+	print("SMELL SIGNAL: Main received smell_detected signal from player")
+	print("SMELL SIGNAL: - Message: '" + smell_text + "'")
+	print("SMELL SIGNAL: - Type: '" + smell_type + "'")
+	print("SMELL SIGNAL: - UI instance exists: " + str(is_instance_valid(ui_instance)))
+	
+	# We don't immediately show the message as the smell animation will emit its
+	# own signal when it's ready to show the message
+
+# Handle smell animation completed signal
+func _on_smell_animation_completed(smell_data):
+	# Debug output with more details - always show regardless of debug_mode
+	print("SMELL SIGNAL: Smell animation_completed signal received")
+	print("SMELL SIGNAL: - Data received: " + str(smell_data))
+	
+	# Validate smell data
+	if not smell_data is Dictionary:
+		print("SMELL SIGNAL ERROR: smell_data is not a Dictionary: " + str(smell_data))
+		return
+		
+	if not smell_data.has("message") or not smell_data.has("type"):
+		print("SMELL SIGNAL ERROR: smell_data missing required fields: " + str(smell_data))
+		return
+	
+	print("SMELL SIGNAL: - Message: '" + smell_data.message + "'")
+	print("SMELL SIGNAL: - Type: '" + smell_data.type + "'")
+	print("SMELL SIGNAL: - UI instance exists: " + str(is_instance_valid(ui_instance)))
+	
+	# Now show the UI message
+	if ui_instance:
+		print("SMELL SIGNAL: Calling ui_instance.show_smell_message()")
+		ui_instance.show_smell_message(smell_data.message, smell_data.type)
+	else:
+		print("SMELL SIGNAL ERROR: UI instance not found, can't display smell message")
+
+# Count the number of smell objects in the scene
+func count_smell_objects():
+	var counts = {
+		"total": 0,
+		"good": 0,
+		"bad": 0,
+		"epic": 0,
+		"neutral": 0,
+		"detected": 0,  # Smells that have been found/detected
+		"collected": 0  # Smells that have been fully collected
+	}
+	
+	var smell_nodes = get_tree().get_nodes_in_group("smell")
+	counts["total"] = smell_nodes.size()
+	
+	for smell in smell_nodes:
+		if smell is Smell:
+			var type = smell.smell_type
+			if type in counts:
+				counts[type] += 1
+				
+			# Count detected and collected smells
+			if "detected" in smell and smell.detected:
+				counts["detected"] += 1
+				
+			if "collected" in smell and smell.collected:
+				counts["collected"] += 1
+	
+	return counts
 
 # Get the floor tile at a specific world position
 # Returns the tile coordinates or null if no tile exists

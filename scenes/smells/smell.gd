@@ -17,7 +17,14 @@ signal animation_completed(smell_data) # Signal to notify when animation is done
 # Isometric position adjustments - helps with correct positioning on isometric grid
 @export var isometric_height_offset: float = 0.0  # Positive values will raise the smell's visual position
 
+# Animation timing
+var animation_duration = 1.6  # Total animation time in seconds
+var message_delay = 0.8      # Time to wait before showing the message
+
 func _ready():
+	# Add to smell group so player can detect it
+	add_to_group("smell")
+	
 	# Set up collision shape
 	if not get_node_or_null("CollisionShape2D"):
 		var collision = CollisionShape2D.new()
@@ -40,6 +47,9 @@ func _ready():
 	
 	# Connect signal
 	connect("body_entered", _on_body_entered)
+	
+	# Debug
+	print("Smell initialized: " + smell_name + " (type: " + smell_type + ")")
 
 func setup_particles():
 	# Create particle effect for the smell
@@ -54,7 +64,16 @@ func setup_particles():
 	particles_material.gravity = Vector3(0, -30, 0)  # Stronger upward gravity
 	particles_material.initial_velocity_min = 20.0  # Increased from 10.0
 	particles_material.initial_velocity_max = 40.0  # Increased from 20.0
-	particles_material.color = particles_color
+	
+	# Set color based on smell type
+	if smell_type == "good":
+		particles_material.color = Color(0.2, 0.8, 0.2, 0.8)  # More vivid green
+	elif smell_type == "bad":
+		particles_material.color = Color(0.8, 0.2, 0.2, 0.8)  # Red
+	elif smell_type == "epic":
+		particles_material.color = Color(0.8, 0.2, 0.8, 0.8)  # Purple
+	else:
+		particles_material.color = Color(0.8, 0.8, 0.8, 0.8)  # Light gray for neutral
 	
 	# Add scale variation to particles
 	particles_material.scale_min = 1.0
@@ -82,16 +101,35 @@ func _on_body_entered(body):
 	if body is CharacterBody2D and not collected:
 		# This function no longer immediately collects the smell.
 		# The player now needs to use their smell ability to detect it.
-		pass
+		print("Player entered smell area: " + smell_name)
+
+# Public methods for the smell object
+func get_smell_text():
+	return smell_message
+
+func get_smell_type():
+	return smell_type
 
 # New function to detect and animate the smell when player uses smell ability
 func detect():
 	if not detected and not collected:
 		detected = true
+		print("Smell detected: " + smell_name)
 		
 		# Show particles rising with animation
 		if particle_system:
-			# Start emitting particles
+			# Set the color explicitly based on smell type
+			var material = particle_system.process_material
+			if smell_type == "good":
+				material.color = Color(0.2, 0.8, 0.2, 0.8)  # More vivid green
+			elif smell_type == "bad":
+				material.color = Color(0.8, 0.2, 0.2, 0.8)  # Red
+			elif smell_type == "epic":
+				material.color = Color(0.8, 0.2, 0.8, 0.8)  # Purple
+			else:
+				material.color = Color(0.8, 0.8, 0.8, 0.8)  # Light gray for neutral
+			
+			# Start emitting particles immediately
 			particle_system.emitting = true
 			
 			# Calculate particle animation offsets for isometric perspective
@@ -103,16 +141,17 @@ func detect():
 			var tween = create_tween()
 			
 			# First rise up more dramatically
-			tween.tween_property(particle_system, "position", mid_pos, 0.8)
+			tween.tween_property(particle_system, "position", mid_pos, animation_duration * 0.5)
+			
+			# Emit the smell signal immediately with smell data
+			emit_signal("animation_completed", {"message": smell_message, "type": smell_type})
 			
 			# Then continue rising while fading out
-			tween.tween_property(particle_system, "position", end_pos, 0.8)
-			tween.parallel().tween_property(particle_system, "modulate", Color(1, 1, 1, 0), 0.8)
+			tween.tween_property(particle_system, "position", end_pos, animation_duration * 0.5)
+			tween.parallel().tween_property(particle_system, "modulate", Color(1, 1, 1, 0), animation_duration * 0.5)
 			
-			# After animation completes, emit signal with smell data then mark as collected
+			# After animation completes, mark as collected
 			tween.tween_callback(func():
-				# Emit the signal with smell data
-				emit_signal("animation_completed", {"message": smell_message, "type": smell_type})
 				# Then mark as collected
 				mark_collected()
 			)
@@ -121,6 +160,7 @@ func detect():
 func mark_collected():
 	if not collected:
 		collected = true
+		print("Smell collected: " + smell_name)
 		
 		# Here we can add any additional logic needed when a smell is collected
 		# For example, update a score counter, play a sound, etc. 
