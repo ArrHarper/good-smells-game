@@ -12,7 +12,10 @@ class_name Smell
 # Visual representation variables
 @export var particles_color: Color = Color(1, 1, 1)
 var particle_system
-signal animation_completed(smell_data) # New signal to notify when animation is done
+signal animation_completed(smell_data) # Signal to notify when animation is done
+
+# Isometric position adjustments - helps with correct positioning on isometric grid
+@export var isometric_height_offset: float = 0.0  # Positive values will raise the smell's visual position
 
 func _ready():
 	# Set up collision shape
@@ -30,6 +33,11 @@ func _ready():
 	if particle_system:
 		particle_system.emitting = false
 		
+	# Apply isometric height offset if needed
+	if isometric_height_offset != 0.0:
+		if particle_system:
+			particle_system.position.y = -isometric_height_offset
+	
 	# Connect signal
 	connect("body_entered", _on_body_entered)
 
@@ -86,14 +94,19 @@ func detect():
 			# Start emitting particles
 			particle_system.emitting = true
 			
+			# Calculate particle animation offsets for isometric perspective
+			var start_pos = Vector2(0, -isometric_height_offset - 10)
+			var mid_pos = Vector2(0, -isometric_height_offset - 30)
+			var end_pos = Vector2(0, -isometric_height_offset - 50)
+			
 			# Create rising and fading animation with proper sequencing
 			var tween = create_tween()
 			
 			# First rise up more dramatically
-			tween.tween_property(particle_system, "position", Vector2(0, -25), 0.8)
+			tween.tween_property(particle_system, "position", mid_pos, 0.8)
 			
 			# Then continue rising while fading out
-			tween.tween_property(particle_system, "position", Vector2(0, -40), 0.8)
+			tween.tween_property(particle_system, "position", end_pos, 0.8)
 			tween.parallel().tween_property(particle_system, "modulate", Color(1, 1, 1, 0), 0.8)
 			
 			# After animation completes, emit signal with smell data then mark as collected
@@ -107,4 +120,7 @@ func detect():
 # Called when the smell animation is complete
 func mark_collected():
 	if not collected:
-		collected = true 
+		collected = true
+		
+		# Here we can add any additional logic needed when a smell is collected
+		# For example, update a score counter, play a sound, etc. 
