@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://c7bt0nydphmi0"]
+[gd_scene load_steps=10 format=3 uid="uid://c7bt0nydphmi0"]
 
 [ext_resource type="Script" uid="uid://by87fmp5hhobc" path="res://scenes/main/main.gd" id="1_0wfyh"]
 [ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="3_6q06x"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://imdjiojyjkr7" path="res://scenes/main/flatmap.tscn" id="6_ismap"]
 [ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="9_m3u8n"]
 [ext_resource type="Script" uid="uid://c4sgqa6wqwmw5" path="res://scripts/isometric_sorter.gd" id="10_sorter"]
+[ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="11_scaler"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]
 font = ExtResource("3_6q06x")
@@ -19,6 +20,9 @@ shadow_offset = Vector2(3, 6)
 [node name="Main" type="Node2D"]
 y_sort_enabled = true
 script = ExtResource("1_0wfyh")
+
+[node name="GameScaler" type="Node" parent="."]
+script = ExtResource("11_scaler")
 
 [node name="IsometricMap" parent="." instance=ExtResource("6_ismap")]
 z_index = -1
@@ -41,7 +45,7 @@ position = Vector2(-77, -32)
 
 [node name="GoodSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 25
-position = Vector2(59, 22)
+position = Vector2(-76, -27)
 smell_name = "Flowers"
 smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
@@ -49,7 +53,7 @@ points = 25
 particles_color = Color(0.761784, 0.0833806, 0.45085, 0.898039)
 
 [node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(-58, -22)
+position = Vector2(97, -46)
 smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
