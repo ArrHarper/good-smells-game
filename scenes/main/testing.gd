@@ -12,10 +12,13 @@ const MAX_TILE_X = 21
 const MIN_TILE_Y = 0
 const MAX_TILE_Y = 21
 
-# Debug mode - set to false for production
+# Debug mode - set to true for testing scene
 @export var debug_mode = true
 
 func _ready():
+	# Set window title to indicate testing mode
+	DisplayServer.window_set_title("Good Smells - TESTING MODE")
+	
 	# Configure TileSet error handling
 	if Engine.has_singleton("ErrorHandler"):
 		var error_handler = Engine.get_singleton("ErrorHandler")
@@ -26,9 +29,6 @@ func _ready():
 	ui_instance = ui_scene.instantiate()
 	add_child(ui_instance)
 	
-	# No longer connect player's smell detection signal to UI as messages are shown above player
-	# Messages will be displayed directly above the player instead of in the UI
-	
 	# Connect to smell animation completed signals
 	connect_smell_signals()
 		
@@ -38,16 +38,25 @@ func _ready():
 	# Initialize isometric sorter
 	initialize_isometric_sorting()
 	
+	# Setup additional testing specific functionality
+	setup_testing_environment()
+	
 	if debug_mode:
-		print("Main scene ready with isometric map")
+		print("TESTING scene ready with isometric map")
 		print("Map boundaries: ", get_map_boundaries())
 		print("Available smell objects:", count_smell_objects())
 
-# Handle input for scene switching
-func _input(event):
-	if event.is_action_pressed("switch_scene"):
-		print("Switching to testing scene")
-		get_node("/root/SceneSwitcher").switch_to_testing()
+# Setup additional testing environment features
+func setup_testing_environment():
+	# Add testing label to indicate this is a testing scene
+	if has_node("TitleLabel"):
+		$TitleLabel.text = "TESTING SCENE"
+		$TitleLabel.modulate = Color(1, 0.5, 0.5, 1) # Reddish tint for testing
+	
+	# Log message to help differentiate from main scene in console
+	print("=== TESTING SCENE INITIALIZED ===")
+	print("This is a testing environment for game mechanics.")
+	print("Any changes made here won't affect the main game.")
 
 # Connect to all smell objects' animation_completed signals
 func connect_smell_signals():
@@ -256,24 +265,11 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 					if debug_mode:
 						print("Found floor tile using get_cell_source_id at: ", tile_pos)
 					return tile_pos
-			
-			# Last resort: Try get_cell method
-			if not found_tile and floor_map.has_method("get_cell"):
-				var cell_value = floor_map.call("get_cell", tile_pos)
-				if cell_value != -1: # -1 usually means empty
-					found_tile = true
-					if debug_mode:
-						print("Found floor tile using get_cell at: ", tile_pos)
-					return tile_pos
-			
-			if debug_mode:
-				print("No floor tile found at position: ", tile_pos)
-	else:
-		if debug_mode:
-			if not has_node("IsometricMap"):
-				print("IsometricMap node not found!")
-			elif not $IsometricMap.has_node("FloorMap"):
-				print("FloorMap node not found in IsometricMap!")
 	
-	# Return an invalid position if no tile found
-	return Vector2i(-1, -1)
+	return Vector2i(-1, -1) # Return invalid coordinates if no tile found
+
+# Handle input for scene switching
+func _input(event):
+	if event.is_action_pressed("switch_scene"):
+		print("Switching to main scene")
+		get_node("/root/SceneSwitcher").switch_to_main()

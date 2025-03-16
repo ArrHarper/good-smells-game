@@ -1,14 +1,12 @@
-[gd_scene load_steps=15 format=3 uid="uid://c7bt0nydphmi0"]
+[gd_scene load_steps=13 format=3 uid="uid://024qtd7ahmfb"]
 
-[ext_resource type="Script" uid="uid://by87fmp5hhobc" path="res://scenes/main/main.gd" id="1_0wfyh"]
+[ext_resource type="Script" uid="uid://bkaoxjsh3sgu2" path="res://scenes/main/testing.gd" id="1_0wfyh"]
 [ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="3_6q06x"]
 [ext_resource type="PackedScene" uid="uid://b0dw3hyhtyow2" path="res://scenes/player/player.tscn" id="3_sugp2"]
 [ext_resource type="PackedScene" uid="uid://dbw0qdadjukii" path="res://scenes/smells/smell.tscn" id="4_lfxvs"]
 [ext_resource type="PackedScene" uid="uid://dj02ug1o3ysit" path="res://scenes/collectibles/collectible.tscn" id="5_collect"]
 [ext_resource type="PackedScene" uid="uid://imdjiojyjkr7" path="res://scenes/main/flatmap.tscn" id="6_ismap"]
-[ext_resource type="Texture2D" uid="uid://b31no3hoshypl" path="res://assets/images/trashcan.png" id="9_a8run"]
 [ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="9_m3u8n"]
-[ext_resource type="Texture2D" uid="uid://dkgqvkccdjn4q" path="res://assets/images/gymbag.png" id="10_ouso4"]
 [ext_resource type="Script" uid="uid://c4sgqa6wqwmw5" path="res://scripts/isometric_sorter.gd" id="10_sorter"]
 [ext_resource type="Texture2D" uid="uid://bxucoxsvw7plu" path="res://assets/images/hotdogpicnictable.png" id="11_ouso4"]
 [ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="11_scaler"]
@@ -17,12 +15,12 @@
 [sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]
 font = ExtResource("3_6q06x")
 font_size = 28
-font_color = Color(1, 1, 0, 1)
+font_color = Color(1, 0.301961, 0.301961, 1)
 shadow_size = 9
 shadow_color = Color(0.756863, 0.376471, 0.509804, 1)
 shadow_offset = Vector2(3, 6)
 
-[node name="Main" type="Node2D"]
+[node name="Testing" type="Node2D"]
 y_sort_enabled = true
 script = ExtResource("1_0wfyh")
 
@@ -34,21 +32,21 @@ z_index = -1
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="TestingModeHint" type="Label" parent="CanvasLayer"]
+[node name="TestModeLabel" type="Label" parent="CanvasLayer"]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -184.0
+offset_left = -174.0
 offset_top = 10.0
 offset_right = -10.0
 offset_bottom = 36.0
 grow_horizontal = 0
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.7)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 14
-text = "Alt+T for Testing Mode"
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "TESTING MODE (Alt+T)"
 horizontal_alignment = 2
 
 [node name="TitleLabel" type="Label" parent="."]
@@ -56,7 +54,7 @@ offset_left = -184.0
 offset_top = -275.0
 offset_right = 184.0
 offset_bottom = -182.0
-text = "Find the Good Smells!"
+text = "TESTING SCENE"
 label_settings = SubResource("LabelSettings_ow5a4")
 horizontal_alignment = 1
 script = ExtResource("9_m3u8n")
@@ -73,24 +71,6 @@ smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
 points = 25
 particles_color = Color(1, 0, 0.301961, 1)
-
-[node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
-z_index = 5
-position = Vector2(19, -62)
-smell_name = "Garbage"
-smell_type = "bad"
-smell_message = "Eww, something stinks!"
-points = 25
-particles_color = Color(0.670588, 0.321569, 0.211765, 1)
-
-[node name="BadSmell2" parent="." instance=ExtResource("4_lfxvs")]
-z_index = 5
-position = Vector2(80, -24)
-smell_name = "Garbage"
-smell_type = "bad"
-smell_message = "Eww, something stinks!"
-points = 25
-particles_color = Color(0.670588, 0.321569, 0.211765, 1)
 
 [node name="EpicSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
@@ -117,15 +97,6 @@ script = ExtResource("10_sorter")
 [node name="MapObjects" type="Node2D" parent="."]
 z_index = 5
 y_sort_enabled = true
-
-[node name="GymbagSprite" type="Sprite2D" parent="MapObjects"]
-position = Vector2(78, -22)
-scale = Vector2(0.78125, 0.84375)
-texture = ExtResource("10_ouso4")
-
-[node name="TrashcanSprite" type="Sprite2D" parent="MapObjects"]
-position = Vector2(13, -65)
-texture = ExtResource("9_a8run")
 
 [node name="Sprite2D" type="Sprite2D" parent="MapObjects"]
 position = Vector2(-68, -24)
