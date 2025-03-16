@@ -1,6 +1,6 @@
 extends Node
 
-# Scale factor for game elements
+# Scale factor for game elements - should match window/stretch/scale in project settings
 const SCALE_FACTOR = 2.0
 
 # Nodes that should be excluded from scaling (UI elements)
@@ -11,6 +11,13 @@ signal scale_changed(new_scale)
 
 # Default scale tracker
 var is_scaled_applied = false
+
+# Called when the node enters the scene tree for the first time
+func _ready():
+	# Verify that our scale factor matches the project settings
+	var settings_scale = ProjectSettings.get_setting("display/window/stretch/scale", 1.0)
+	if settings_scale != SCALE_FACTOR:
+		push_warning("ScaleHelper SCALE_FACTOR (%s) doesn't match project settings stretch scale (%s)" % [SCALE_FACTOR, settings_scale])
 
 # Get the current scale factor
 static func get_scale_factor() -> float:
@@ -35,19 +42,22 @@ static func scale_size(size: Vector2) -> Vector2:
 
 # Convert an editor position to runtime position
 static func editor_to_runtime(position: Vector2) -> Vector2:
-	return position * SCALE_FACTOR
+	# No conversion needed with built-in stretch system - viewport coordinates remain the same
+	return position
 
 # Convert a runtime position back to editor position
 static func runtime_to_editor(position: Vector2) -> Vector2:
-	return position / SCALE_FACTOR
+	# No conversion needed with built-in stretch system - viewport coordinates remain the same
+	return position
 
 # Determine if a value has already been scaled
 static func is_scaled(node: Node2D) -> bool:
 	if node == null:
 		return false
 		
-	# If the node's scale matches the game scale, it's already scaled
-	return is_equal_approx(node.scale.x, SCALE_FACTOR) and is_equal_approx(node.scale.y, SCALE_FACTOR)
+	# With built-in scaling, we don't manually scale nodes anymore
+	# This function is kept for compatibility
+	return true
 
 # Convert a node's editor position to the correct runtime position
 static func convert_editor_to_runtime_position(node: Node2D) -> void:
@@ -63,19 +73,17 @@ static func convert_editor_to_runtime_position(node: Node2D) -> void:
 	if node.get_class() == "CanvasLayer" or "CanvasLayer" in node.get_class():
 		return
 			
-	# For nodes that were positioned in the editor but not scaled yet
-	if node.scale.x != SCALE_FACTOR:
-		# Store the original editor position
-		var editor_position = node.position
-		
-		# Scale the node
-		node.scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
-		
-		# Adjust position to match what would be expected in the editor
-		node.position = editor_to_runtime(editor_position)
+	# With the new built-in stretch system, we don't need to manually
+	# scale node positions. This function is kept for compatibility.
+	# 
+	# If you're positioning nodes in the editor, they'll appear at
+	# the same position in the game.
+	pass
 
 # Apply nearest neighbor filtering to a node and its children
 static func apply_nearest_neighbor_filter(node) -> void:
+	# With viewport stretch mode, we don't need to manually set texture filtering
+	# However, we'll keep this for compatibility or custom cases
 	# Check if this node is a sprite
 	if node is Sprite2D or node is AnimatedSprite2D:
 		node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -105,14 +113,9 @@ static func adjust_collision_shape(shape: CollisionShape2D) -> void:
 	if shape == null:
 		return
 		
-	# Adjust different shape types appropriately
-	if shape.shape is CircleShape2D:
-		# For circle shapes, scale the radius
-		shape.shape.radius *= SCALE_FACTOR
-	elif shape.shape is RectangleShape2D:
-		# For rectangle shapes, scale the extents
-		shape.shape.size *= SCALE_FACTOR
-	# Add more shape types as needed 
+	# With built-in stretch mode, Godot handles scaling collision shapes automatically
+	# This function is kept for compatibility with any custom cases
+	pass
 
 # Find and apply nearest neighbor filtering to all tilemaps in a node and its children
 static func find_and_fix_all_tilemaps(node) -> void:

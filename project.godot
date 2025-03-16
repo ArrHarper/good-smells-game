@@ -26,7 +26,11 @@ SceneSwitcher="*res://scenes/main/scene_switcher.gd"
 
 window/size/viewport_width=800
 window/size/viewport_height=600
-window/size/resizable=false
+window/size/resizable=true
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+window/stretch/scale=2.0
+window/stretch/scale_mode="integer"
 
 [input]
 
