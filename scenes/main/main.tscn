@@ -52,7 +52,7 @@ smell_name = "Flowers"
 smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
 points = 25
-particles_color = Color(0.761784, 0.0833806, 0.45085, 0.898039)
+particles_color = Color(1, 0, 0.301961, 1)
 
 [node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
@@ -61,7 +61,7 @@ smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
 points = 25
-particles_color = Color(0.394606, 0.401839, 1.92523e-07, 1)
+particles_color = Color(0.670588, 0.321569, 0.211765, 1)
 
 [node name="BadSmell2" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
@@ -70,7 +70,7 @@ smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
 points = 25
-particles_color = Color(0.394606, 0.401839, 1.92523e-07, 1)
+particles_color = Color(0.670588, 0.321569, 0.211765, 1)
 
 [node name="EpicSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
@@ -79,6 +79,7 @@ smell_name = "Chocolate"
 smell_type = "epic"
 smell_message = "Delicious chocolate!"
 points = 25
+particles_color = Color(0, 1, 0.8, 1)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
