@@ -26,14 +26,8 @@ func _ready():
 	ui_instance = ui_scene.instantiate()
 	add_child(ui_instance)
 	
-	# Connect player's smell detection signal to UI
-	if has_node("nose"):
-		$nose.connect("smell_detected", _on_smell_detected)
-		if debug_mode:
-			print("Connected player smell detection signal to UI")
-	else:
-		if debug_mode:
-			print("Error: Player node 'nose' not found")
+	# No longer connect player's smell detection signal to UI as messages are shown above player
+	# Messages will be displayed directly above the player instead of in the UI
 	
 	# Connect to smell animation completed signals
 	connect_smell_signals()
@@ -130,45 +124,22 @@ func initialize_isometric_sorting():
 		if debug_mode:
 			print("Initialized isometric sorting with objects")
 
-# Handle smell detection from player
+# Handle smell detection from player - This is now unused as messages appear above player
 func _on_smell_detected(smell_text, smell_type):
 	if debug_mode:
 		print("SMELL SIGNAL: Main received smell_detected signal from player")
 		print("SMELL SIGNAL: - Message: '" + smell_text + "'")
 		print("SMELL SIGNAL: - Type: '" + smell_type + "'")
 	
-	# Show the message via UI - only one smell is detected at a time
-	if ui_instance:
-		ui_instance.show_smell_message(smell_text, smell_type)
-	elif debug_mode:
-		print("ERROR: UI instance not found, can't display smell message")
+	# We no longer show the message in the UI as it appears above the player
 
-# Handle smell animation completed signal
+# Handle smell animation completed signal - This is now unused as messages appear above player
 func _on_smell_animation_completed(smell_data):
 	if debug_mode:
 		print("SMELL SIGNAL: Smell animation_completed signal received")
 		print("SMELL SIGNAL: - Data received: " + str(smell_data))
 	
-	# Validate smell data
-	if not smell_data is Dictionary:
-		if debug_mode:
-			print("ERROR: smell_data is not a Dictionary: " + str(smell_data))
-		return
-		
-	if not smell_data.has("message") or not smell_data.has("type"):
-		if debug_mode:
-			print("ERROR: smell_data missing required fields: " + str(smell_data))
-		return
-	
-	if debug_mode:
-		print("SMELL SIGNAL: - Message: '" + smell_data.message + "'")
-		print("SMELL SIGNAL: - Type: '" + smell_data.type + "'")
-	
-	# Now show the UI message
-	if ui_instance:
-		ui_instance.show_smell_message(smell_data.message, smell_data.type)
-	elif debug_mode:
-		print("ERROR: UI instance not found, can't display smell message")
+	# We no longer show the message in the UI as it appears above the player
 
 # Count the number of smell objects in the scene
 func count_smell_objects():

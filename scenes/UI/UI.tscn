@@ -1,17 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://dhdghvh01i7hf"]
+[gd_scene load_steps=6 format=3 uid="uid://dhdghvh01i7hf"]
 
 [ext_resource type="Script" uid="uid://bvgh3fyb255jv" path="res://scenes/UI/mainUI.gd" id="1_pdh8v"]
 [ext_resource type="Texture2D" uid="uid://bef2upm3o83ar" path="res://assets/images/buggo.png" id="2_gl4co"]
 [ext_resource type="Texture2D" uid="uid://ds3lplud4scfc" path="res://assets/images/buggoActive.png" id="2_n6wm8"]
 [ext_resource type="Texture2D" uid="uid://buek3cr6n3l5u" path="res://assets/images/buggoHover.png" id="4_lj5up"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smell"]
-bg_color = Color(0.2, 0.2, 0.2, 0.2)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-corner_detail = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxj10"]
 bg_color = Color(0, 0, 0, 0.4)
@@ -22,25 +14,6 @@ corner_radius_bottom_left = 3
 
 [node name="UI" type="CanvasLayer"]
 script = ExtResource("1_pdh8v")
-
-[node name="SmellWindowIndicator" type="PanelContainer" parent="."]
-z_index = 49
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_top = 62.0
-offset_right = 100.0
-offset_bottom = 100.0
-grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_smell")
-
-[node name="IndicatorLabel" type="Label" parent="SmellWindowIndicator"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.3)
-theme_override_font_sizes/font_size = 12
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="TextureButton" type="TextureButton" parent="."]
 anchors_preset = 2

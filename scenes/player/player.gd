@@ -25,6 +25,7 @@ signal smell_detected(smell_text, smell_type) # Signal when a smell is detected
 var smell_particles = null
 var default_particle_color = Color(0.9, 0.9, 1.0, 0.8)
 var current_particle_color = default_particle_color
+var smell_message_label = null # Label to display smell message above player's head
 
 # Animation properties
 var floating_time = 0
@@ -512,14 +513,78 @@ func _on_smell_animation_completed(smell_data):
 	var smell_text = smell_data.message if "message" in smell_data else "Something smells..."
 	var smell_type = smell_data.type if "type" in smell_data else "neutral"
 	
+	# Map the smell message to the new shorter texts
+	if smell_type == "good":
+		smell_text = "YUM"
+	elif smell_type == "bad":
+		smell_text = "Eeaughh..."
+	elif smell_type == "epic":
+		smell_text = "OooOoooh!"
+	
 	if debug_mode:
 		print("SMELL SIGNAL: Player received smell_animation_completed with data: ", smell_data)
-		print("SMELL SIGNAL: Player emitting smell_detected signal with:")
-		print("SMELL SIGNAL: - Message: '" + smell_text + "'")
-		print("SMELL SIGNAL: - Type: '" + smell_type + "'")
+		print("SMELL SIGNAL: Player displaying smell message: ", smell_text)
 	
-	# Emit the signal with smell information
-	emit_signal("smell_detected", smell_text, smell_type)
+	# Display the message above the player's head
+	display_smell_message(smell_text, smell_type)
+
+# Function to display smell message above the player's head
+func display_smell_message(text, type):
+	# Remove any existing message label
+	if smell_message_label != null:
+		smell_message_label.queue_free()
+	
+	# Create a new label
+	smell_message_label = Label.new()
+	smell_message_label.name = "SmellMessageLabel"
+	smell_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	smell_message_label.text = text
+	
+	# Set font size and style
+	smell_message_label.add_theme_font_size_override("font_size", 12)
+	
+	# Set text color based on smell type
+	match type:
+		"good":
+			smell_message_label.add_theme_color_override("font_color", Color("ff004d")) # Green
+		"bad":
+			smell_message_label.add_theme_color_override("font_color", Color("ab5236")) # Red
+		"epic":
+			smell_message_label.add_theme_color_override("font_color", Color("00ffcc"))
+		_:
+			smell_message_label.add_theme_color_override("font_color", Color(1, 1, 1)) # White
+	
+	# Add shadow and outline for better visibility
+	smell_message_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	smell_message_label.add_theme_constant_override("shadow_offset_x", 1)
+	smell_message_label.add_theme_constant_override("shadow_offset_y", 1)
+	smell_message_label.add_theme_constant_override("outline_size", 2)
+	smell_message_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	
+	# Position the label above the particles
+	var y_offset = -40.0
+	if game_scale:
+		y_offset *= game_scale.SCALE_FACTOR
+	
+	smell_message_label.position = Vector2(-50, y_offset)
+	smell_message_label.size = Vector2(100, 30)
+	
+	# Make sure it's visible above everything
+	smell_message_label.z_index = 1001
+	
+	# Add the label to the player
+	add_child(smell_message_label)
+	
+	# Animation for the label
+	var tween = create_tween()
+	tween.tween_property(smell_message_label, "modulate", Color(1, 1, 1, 1), 0.3) # Fade in
+	tween.tween_interval(1.4) # Show for a moment
+	tween.tween_property(smell_message_label, "modulate", Color(1, 1, 1, 0), 0.3) # Fade out
+	tween.tween_callback(func():
+		if smell_message_label:
+			smell_message_label.queue_free()
+			smell_message_label = null
+	)
 
 # Alias for backwards compatibility
 func check_for_smells():

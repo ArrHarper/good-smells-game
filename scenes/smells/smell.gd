@@ -258,12 +258,14 @@ func detect():
 			var tween = create_tween()
 			tween.tween_property(indicator_node, "modulate:a", 0, 0.3)
 		
-		# Instead of handling particles here, emit a signal to the player
-		# with all relevant smell information
+		# Determine the message based on smell type
+		var display_message = smell_message
+		
+		# Pass all smell information to the player
 		var smell_info = {
 			"name": smell_name,
 			"type": smell_type,
-			"message": smell_message,
+			"message": smell_message, # Keep original message in data
 			"color": get_smell_color()
 		}
 		
