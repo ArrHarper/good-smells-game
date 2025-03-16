@@ -33,7 +33,7 @@ z_index = -1
 
 [node name="TitleLabel" type="Label" parent="."]
 offset_left = -184.0
-offset_top = -221.0
+offset_top = -275.0
 offset_right = 184.0
 offset_bottom = -182.0
 text = "Find the Good Smells!"
@@ -56,7 +56,16 @@ particles_color = Color(0.761784, 0.0833806, 0.45085, 0.898039)
 
 [node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
-position = Vector2(-6, -58)
+position = Vector2(19, -62)
+smell_name = "Garbage"
+smell_type = "bad"
+smell_message = "Eww, something stinks!"
+points = 25
+particles_color = Color(0.394606, 0.401839, 1.92523e-07, 1)
+
+[node name="BadSmell2" parent="." instance=ExtResource("4_lfxvs")]
+z_index = 5
+position = Vector2(80, -24)
 smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
@@ -65,7 +74,7 @@ particles_color = Color(0.394606, 0.401839, 1.92523e-07, 1)
 
 [node name="EpicSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
-position = Vector2(33, 50)
+position = Vector2(145, 7)
 smell_name = "Chocolate"
 smell_type = "epic"
 smell_message = "Delicious chocolate!"
@@ -85,5 +94,5 @@ position = Vector2(78, -25)
 texture = ExtResource("10_ouso4")
 
 [node name="TrashcanSprite" type="Sprite2D" parent="MapObjects"]
-position = Vector2(6, -93)
+position = Vector2(15, -61)
 texture = ExtResource("9_a8run")

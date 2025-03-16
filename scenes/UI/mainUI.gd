@@ -14,7 +14,7 @@ func _ready():
 	
 	# Set up the debug toggle button
 	var debug_button = get_node_or_null("TextureButton")
-	var debug_text = get_node_or_null("TextureButton/RichTextLabel")
+	var debug_text = get_node_or_null("RichTextLabel")
 	
 	if debug_button and debug_text:
 		# Set the debug text to be hidden by default
@@ -41,29 +41,51 @@ func _process(delta):
 # Update the debug text with player information
 func update_debug_text(player_pos, tile_pos, z_index):
 	# Find the debug text node
-	var debug_text = get_node_or_null("TextureButton/RichTextLabel")
+	var debug_text = get_node_or_null("RichTextLabel")
 	
 	if debug_text:
-		var text = "Debug Info\n"
-		text += "Position: (" + str(int(player_pos.x)) + ", " + str(int(player_pos.y)) + ")\n"
-		text += "Tile: (" + str(tile_pos.x) + ", " + str(tile_pos.y) + ")\n"
-		text += "Z-Index: " + str(z_index)
+		var raw_text = "Debug Info\n"
+		raw_text += "Position: (" + str(int(player_pos.x)) + ", " + str(int(player_pos.y)) + ")\n"
+		raw_text += "Tile: (" + str(tile_pos.x) + ", " + str(tile_pos.y) + ")\n"
+		raw_text += "Z-Index: " + str(z_index)
 		
 		# Count smells if possible
 		var main = get_node_or_null("/root/Main")
 		if main and main.has_method("count_smell_objects"):
 			var counts = main.count_smell_objects()
-			text += "\n\nSmells:"
-			text += "\nFound: " + str(counts.detected) + "/" + str(counts.total)
-			text += "\nCollected: " + str(counts.collected) + "/" + str(counts.total)
-			text += "\n\nBy Type:"
-			text += "\n - Good: " + str(counts.good)
-			text += "\n - Bad: " + str(counts.bad)
-			text += "\n - Epic: " + str(counts.epic)
+			raw_text += "\n\nSmells:"
+			raw_text += "\nFound: " + str(counts.detected) + "/" + str(counts.total)
+			raw_text += "\nCollected: " + str(counts.collected) + "/" + str(counts.total)
+			raw_text += "\n\nBy Type:"
+			raw_text += "\n - Good: " + str(counts.good)
+			raw_text += "\n - Bad: " + str(counts.bad)
+			raw_text += "\n - Epic: " + str(counts.epic)
 			if counts.neutral > 0:
-				text += "\n - Neutral: " + str(counts.neutral)
+				raw_text += "\n - Neutral: " + str(counts.neutral)
 		
-		debug_text.text = text
+		# Split text into columns
+		var column_width = 180 # Adjust this value based on your layout preferences
+		var num_columns = 4 # Number of columns to display
+		var lines = raw_text.split("\n")
+		var lines_per_column = int(ceil(float(lines.size()) / num_columns))
+		
+		# Generate BBCode for multi-column layout
+		var formatted_text = "[table=noborder]\n[cell]"
+		
+		for i in range(lines.size()):
+			formatted_text += lines[i]
+			
+			# End of a column or last line
+			if (i + 1) % lines_per_column == 0 and i < lines.size() - 1:
+				formatted_text += "[/cell][cell]"
+			elif i < lines.size() - 1:
+				formatted_text += "\n"
+				
+		formatted_text += "[/cell]\n[/table]"
+		
+		# Set the BBCode text
+		debug_text.bbcode_enabled = true
+		debug_text.text = formatted_text
 
 func show_smell_message(text, type):
 	# Remove any existing DebugLabel if it exists
@@ -80,26 +102,43 @@ func show_smell_message(text, type):
 	# Create a new label for the smell message
 	var message_label = Label.new()
 	message_label.name = "SmellMessageLabel"
-	message_label.size = Vector2(400, 135) # Match SmellWindowIndicator size
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	message_label.add_theme_font_size_override("font_size", 24)
 	
+	# Set the label to fill the entire parent and center the text
+	message_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	message_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	message_label.grow_vertical = Control.GROW_DIRECTION_BOTH
+	
 	# Set text and color based on smell type
 	message_label.text = text
+	
+	# Create a new StyleBoxFlat for the indicator
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.2, 0.2, 0.2) # Default
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_detail = 10
+	
 	match type:
 		"good":
 			message_label.add_theme_color_override("font_color", Color(0, 1, 0))
-			indicator.color = Color(0.2, 0.7, 0.2, 0.3)
+			style.bg_color = Color(0.2, 0.7, 0.2, 0.3)
 		"bad":
 			message_label.add_theme_color_override("font_color", Color(1, 0, 0))
-			indicator.color = Color(0.7, 0.2, 0.2, 0.3)
+			style.bg_color = Color(0.7, 0.2, 0.2, 0.3)
 		"epic":
 			message_label.add_theme_color_override("font_color", Color(0.8, 0.4, 0))
-			indicator.color = Color(0.7, 0.4, 0.0, 0.3)
+			style.bg_color = Color(0.7, 0.4, 0.0, 0.3)
 		_:
 			message_label.add_theme_color_override("font_color", Color(1, 1, 1))
-			indicator.color = Color(0.2, 0.2, 0.2, 0.3)
+			style.bg_color = Color(0.2, 0.2, 0.2, 0.3)
+	
+	# Apply the style to the indicator
+	indicator.add_theme_stylebox_override("panel", style)
 	
 	# Add shadow and outline effects for better visibility
 	message_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
@@ -127,8 +166,16 @@ func show_smell_message(text, type):
 		tween.tween_property(message_label, "modulate", Color(1, 1, 1, 0), 0.5)
 		tween.tween_callback(func():
 			message_label.queue_free()
-			# Reset indicator color
-			indicator.color = Color(0.2, 0.2, 0.2, 0.2)
+			# Reset indicator style
+			var default_style = StyleBoxFlat.new()
+			default_style.bg_color = Color(0.2, 0.2, 0.2, 0.2)
+			default_style.corner_radius_top_left = 16
+			default_style.corner_radius_top_right = 16
+			default_style.corner_radius_bottom_right = 16
+			default_style.corner_radius_bottom_left = 16
+			default_style.corner_detail = 16
+			indicator.add_theme_stylebox_override("panel", default_style)
+			
 			# Show the indicator label again
 			if indicator_label:
 				indicator_label.visible = true
@@ -153,6 +200,6 @@ func test_smell_message():
 
 # Toggle visibility of the debug text panel
 func _on_debug_button_pressed():
-	var debug_text = get_node_or_null("TextureButton/RichTextLabel")
+	var debug_text = get_node_or_null("RichTextLabel")
 	if debug_text:
 		debug_text.visible = !debug_text.visible
