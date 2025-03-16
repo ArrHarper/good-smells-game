@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Good Smells"
+config/name="Good-Smells-Game"
 run/main_scene="res://scenes/main/main.tscn"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"

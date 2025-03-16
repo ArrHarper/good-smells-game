@@ -21,6 +21,9 @@ var smell_duration = 2.0 # Duration of the smell action in seconds
 var pending_smells = [] # List of smell objects to process
 signal smell_detected(smell_text, smell_type) # Signal when a smell is detected
 
+# Collectible detection (will reuse the smelling action)
+var pending_collectibles = [] # List of collectible objects to process
+
 # Particle system properties
 var smell_particles = null
 var default_particle_color = Color(0.9, 0.9, 1.0, 0.8)
@@ -130,16 +133,30 @@ func _on_range_check_timer_timeout():
 	if smell_detector:
 		var overlapping_areas = smell_detector.get_overlapping_areas()
 		var current_smells_in_range = []
+		var current_collectibles_in_range = []
 		
-		# Find all smells currently in range
+		# Find all smells and collectibles currently in range
 		for area in overlapping_areas:
+			# Check for smells
 			if area is Smell or (area.get_parent() is Smell):
 				var smell = area if area is Smell else area.get_parent()
 				current_smells_in_range.append(smell)
+			# Check for collectibles
+			elif area is Collectible or (area.get_parent() is Collectible):
+				var collectible = area if area is Collectible else area.get_parent()
+				current_collectibles_in_range.append(collectible)
 		
-		# Sort by distance
+		# Sort smells by distance
 		if current_smells_in_range.size() > 1:
 			current_smells_in_range.sort_custom(func(a, b):
+				var dist_a = global_position.distance_to(a.global_position)
+				var dist_b = global_position.distance_to(b.global_position)
+				return dist_a < dist_b
+			)
+		
+		# Sort collectibles by distance
+		if current_collectibles_in_range.size() > 1:
+			current_collectibles_in_range.sort_custom(func(a, b):
 				var dist_a = global_position.distance_to(a.global_position)
 				var dist_b = global_position.distance_to(b.global_position)
 				return dist_a < dist_b
@@ -150,6 +167,12 @@ func _on_range_check_timer_timeout():
 			var smell = current_smells_in_range[i]
 			if smell.has_method("in_range") and not smell.collected:
 				smell.in_range(i == 0) # Pass true if it's the closest smell
+		
+		# Update each collectible's status
+		for i in range(current_collectibles_in_range.size()):
+			var collectible = current_collectibles_in_range[i]
+			if collectible.has_method("in_range") and not collectible.collected:
+				collectible.in_range(i == 0) # Pass true if it's the closest collectible
 		
 		# Call out_of_range for smells that are no longer in range
 		for smell in previous_smells_in_range:
@@ -344,8 +367,9 @@ func start_smelling():
 	is_smelling = true
 	wiggle_time = 0 # Reset wiggle animation timer
 	
-	# Clear any pending smells
+	# Clear any pending smells and collectibles
 	pending_smells = []
+	pending_collectibles = []
 	
 	# Debug print
 	if debug_mode:
@@ -360,7 +384,7 @@ func start_smelling():
 		if debug_mode:
 			print("Started smell timer for " + str(smell_duration) + " seconds")
 	
-	# Find smells in the area but don't process them yet, store them for later
+	# Find smells and collectibles nearby but don't process them yet
 	find_pending_smells()
 
 func _on_smell_timer_timeout():
@@ -368,7 +392,7 @@ func _on_smell_timer_timeout():
 	
 	# Debug print
 	if debug_mode:
-		print("Smell timer timeout - ending wiggle animation, processing detected smells")
+		print("Smell timer timeout - ending wiggle animation, processing detected smells and collectibles")
 	
 	# Reset wiggle animation
 	if has_node("IsoNoseSprite"):
@@ -377,14 +401,14 @@ func _on_smell_timer_timeout():
 		# Let the Y position be handled by normal floating
 		# It will be calculated on the next frame
 	
-	# Now that the animation is complete, process any pending smells
+	# Now that the animation is complete, process any pending smells and collectibles
 	process_pending_smells()
 
 # Find smells nearby but don't process them yet
 func find_pending_smells():
 	# Debug print
 	if debug_mode:
-		print("Finding nearby smells (will only process the closest one after animation)")
+		print("Finding nearby smells and collectibles (will only process the closest one after animation)")
 	
 	# Get all overlapping areas
 	var smell_detector = get_node_or_null("SmellDetector")
@@ -397,8 +421,9 @@ func find_pending_smells():
 			else:
 				print("Found " + str(overlapping_areas.size()) + " overlapping areas")
 		
-		# Clear any previous pending smells
+		# Clear any previous pending items
 		pending_smells = []
+		pending_collectibles = []
 		
 		for area in overlapping_areas:
 			# Check if this is a Smell object
@@ -411,68 +436,128 @@ func find_pending_smells():
 				
 				# Add to pending smells list to process after animation
 				pending_smells.append(smell)
-		
-		if pending_smells.is_empty() and debug_mode:
-			print("No smell objects found in range to process later")
-		# Sort smells by distance
-		elif pending_smells.size() > 1:
-			# Sort the pending smells by distance to player
-			pending_smells.sort_custom(func(a, b):
-				var dist_a = global_position.distance_to(a.global_position)
-				var dist_b = global_position.distance_to(b.global_position)
-				return dist_a < dist_b
-			)
-			
-			if debug_mode:
-				print("Sorted " + str(pending_smells.size()) + " smells by distance, closest is " + pending_smells[0].smell_name)
+			# Check if this is a Collectible object
+			elif area is Collectible or (area.get_parent() is Collectible):
+				# Get the actual collectible object
+				var collectible = area if area is Collectible else area.get_parent()
 				
-			# Signal all pending smells that they are in range but only the closest will be processed
-			for i in range(pending_smells.size()):
-				# Call in_range method on all smells
-				if pending_smells[i].has_method("in_range"):
-					pending_smells[i].in_range(i == 0) # Pass true if it's the closest smell
+				if debug_mode:
+					print("Found collectible object to process later: " + collectible.collectible_name)
+				
+				# Add to pending collectibles list to process after animation
+				pending_collectibles.append(collectible)
+		
+		# Handle cases where we found items
+		var found_items = false
+		
+		# Check if we found any smells
+		if not pending_smells.is_empty():
+			found_items = true
+			if pending_smells.size() > 1:
+				# Sort the pending smells by distance to player
+				pending_smells.sort_custom(func(a, b):
+					var dist_a = global_position.distance_to(a.global_position)
+					var dist_b = global_position.distance_to(b.global_position)
+					return dist_a < dist_b
+				)
+				
+				if debug_mode:
+					print("Sorted " + str(pending_smells.size()) + " smells by distance, closest is " + pending_smells[0].smell_name)
+		
+		# Check if we found any collectibles
+		if not pending_collectibles.is_empty():
+			found_items = true
+			if pending_collectibles.size() > 1:
+				# Sort the pending collectibles by distance to player
+				pending_collectibles.sort_custom(func(a, b):
+					var dist_a = global_position.distance_to(a.global_position)
+					var dist_b = global_position.distance_to(b.global_position)
+					return dist_a < dist_b
+				)
+				
+				if debug_mode:
+					print("Sorted " + str(pending_collectibles.size()) + " collectibles by distance, closest is " + pending_collectibles[0].collectible_name)
+		
+		if not found_items and debug_mode:
+			print("No smells or collectibles found in range to process later")
 
-# Process all pending smells after the animation completes
+# Process all pending smells and collectibles after the animation completes
 func process_pending_smells():
-	if pending_smells.is_empty():
+	var processed_item = false
+	
+	# First try to process smells if any are pending
+	if not pending_smells.is_empty():
 		if debug_mode:
-			print("No pending smells to process")
-		return
+			print("Processing " + str(pending_smells.size()) + " pending smells, but will only detect the first one")
+		
+		# Only process the closest/first smell in the list
+		var smell = pending_smells[0]
+		
+		if is_instance_valid(smell) and not smell.collected:
+			if debug_mode:
+				print("Processing smell: " + smell.smell_name)
+			
+			# Connect to the smell's signals
+			if not smell.is_connected("animation_completed", _on_smell_animation_completed):
+				smell.connect("animation_completed", _on_smell_animation_completed)
+				
+			# Connect to the smell's smell_detected signal
+			if not smell.is_connected("smell_detected", _on_smell_detected):
+				smell.connect("smell_detected", _on_smell_detected)
+			
+			# Call detect method on the smell
+			if smell.has_method("detect"):
+				smell.detect()
+				
+				# Set detected flag
+				if "detected" in smell:
+					smell.detected = true
+				
+				processed_item = true
+				
+				if debug_mode:
+					print("Detected smell: ", smell.smell_name, " (", smell.smell_type, ")")
+			else:
+				if debug_mode:
+					print("Smell object doesn't have detect method!")
 	
-	if debug_mode:
-		print("Processing " + str(pending_smells.size()) + " pending smells, but will only detect the first one")
-	
-	# Only process the closest/first smell in the list
-	var smell = pending_smells[0]
-	
-	if is_instance_valid(smell) and not smell.collected:
+	# If no smell was processed, try to process a collectible
+	if not processed_item and not pending_collectibles.is_empty():
 		if debug_mode:
-			print("Processing smell: " + smell.smell_name)
+			print("Processing " + str(pending_collectibles.size()) + " pending collectibles, but will only detect the first one")
 		
-		# Connect to the smell's signals
-		if not smell.is_connected("animation_completed", _on_smell_animation_completed):
-			smell.connect("animation_completed", _on_smell_animation_completed)
-			
-		# Connect to the smell's smell_detected signal
-		if not smell.is_connected("smell_detected", _on_smell_detected):
-			smell.connect("smell_detected", _on_smell_detected)
+		# Only process the closest/first collectible in the list
+		var collectible = pending_collectibles[0]
 		
-		# Call detect method on the smell
-		if smell.has_method("detect"):
-			smell.detect()
-			
-			# Set detected flag
-			if "detected" in smell:
-				smell.detected = true
-			
+		if is_instance_valid(collectible) and not collectible.collected:
 			if debug_mode:
-				print("Detected smell: ", smell.smell_name, " (", smell.smell_type, ")")
-		else:
-			if debug_mode:
-				print("Smell object doesn't have detect method!")
+				print("Processing collectible: " + collectible.collectible_name)
+			
+			# Connect to the collectible's signals
+			if not collectible.is_connected("animation_completed", _on_collectible_animation_completed):
+				collectible.connect("animation_completed", _on_collectible_animation_completed)
+				
+			# Connect to the collectible's collectible_detected signal
+			if not collectible.is_connected("collectible_detected", _on_collectible_detected):
+				collectible.connect("collectible_detected", _on_collectible_detected)
+			
+			# Call detect method on the collectible
+			if collectible.has_method("detect"):
+				collectible.detect()
+				
+				# Set detected flag
+				if "detected" in collectible:
+					collectible.detected = true
+				
+				if debug_mode:
+					print("Detected collectible: ", collectible.collectible_name, " (", collectible.collectible_type, ")")
+			else:
+				if debug_mode:
+					print("Collectible object doesn't have detect method!")
 	
-	# Clear the pending smells list
+	# Clear the pending lists
 	pending_smells = []
+	pending_collectibles = []
 
 # Handle the smell_detected signal from smells
 func _on_smell_detected(smell_info):
@@ -484,6 +569,17 @@ func _on_smell_detected(smell_info):
 	
 	# Emit particles from the player
 	emit_particles(smell_color)
+
+# Handle the collectible_detected signal from collectibles
+func _on_collectible_detected(collectible_info):
+	if debug_mode:
+		print("COLLECTIBLE SIGNAL: Player received collectible_detected with data: ", collectible_info)
+	
+	# Get the color from the collectible info
+	var collectible_color = collectible_info.color if "color" in collectible_info else default_particle_color
+	
+	# Emit particles from the player
+	emit_particles(collectible_color)
 
 # Emit particles with the specified color
 func emit_particles(color):
@@ -527,6 +623,19 @@ func _on_smell_animation_completed(smell_data):
 	
 	# Display the message above the player's head
 	display_smell_message(smell_text, smell_type)
+
+# New function to handle the animation_completed signal from collectibles
+func _on_collectible_animation_completed(collectible_data):
+	# Extract collectible information from the data
+	var collectible_text = collectible_data.message if "message" in collectible_data else "Found something!"
+	var collectible_type = collectible_data.type if "type" in collectible_data else "common"
+	
+	if debug_mode:
+		print("COLLECTIBLE SIGNAL: Player received collectible_animation_completed with data: ", collectible_data)
+		print("COLLECTIBLE SIGNAL: Player displaying collectible message: ", collectible_text)
+	
+	# Display the message above the player's head
+	display_smell_message(collectible_text, collectible_type)
 
 # Function to display smell message above the player's head
 func display_smell_message(text, type):

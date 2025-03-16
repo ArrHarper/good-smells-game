@@ -59,14 +59,14 @@ func scale_game_elements():
 	# Emit signal that scaling has been applied
 	ScaleHelper.scale_changed.emit(ScaleHelper.SCALE_FACTOR)
 
-func scale_all_smells(parent_node):
-	# Find and scale all smell objects
+func scale_all_game_objects(parent_node):
+	# Find and scale all game objects (smells, collectibles, etc.)
 	for child in parent_node.get_children():
 		scale_node_if_needed(child)
 		
 		# Recursively check children
 		if child.get_child_count() > 0 and not (child is CanvasLayer):
-			scale_all_smells(child)
+			scale_all_game_objects(child)
 
 func scale_node_if_needed(node):
 	# Skip nodes that should be excluded
@@ -75,6 +75,11 @@ func scale_node_if_needed(node):
 	
 	# Scale smell objects
 	if "Smell" in node.name:
+		ScaleHelper.convert_editor_to_runtime_position(node)
+		ScaleHelper.apply_nearest_neighbor_filter(node)
+	
+	# Scale collectible objects
+	elif node is Collectible or "Collectible" in node.name:
 		ScaleHelper.convert_editor_to_runtime_position(node)
 		ScaleHelper.apply_nearest_neighbor_filter(node)
 		

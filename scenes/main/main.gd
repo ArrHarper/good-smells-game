@@ -112,7 +112,7 @@ func initialize_isometric_sorting():
 	if has_node("IsometricSorter"):
 		var sorter = $IsometricSorter
 		
-		# Add all objects that should be sorted (player, smells, etc.)
+		# Add all objects that should be sorted (player, smells, collectibles, etc.)
 		if has_node("nose"):
 			sorter.add_sorted_object($nose)
 			
@@ -120,6 +120,11 @@ func initialize_isometric_sorting():
 		var smell_nodes = get_tree().get_nodes_in_group("smell")
 		for smell in smell_nodes:
 			sorter.add_sorted_object(smell)
+		
+		# Add collectible objects
+		var collectible_nodes = get_tree().get_nodes_in_group("collectible")
+		for collectible in collectible_nodes:
+			sorter.add_sorted_object(collectible)
 		
 		if debug_mode:
 			print("Initialized isometric sorting with objects")
@@ -167,6 +172,36 @@ func count_smell_objects():
 				counts["detected"] += 1
 				
 			if "collected" in smell and smell.collected:
+				counts["collected"] += 1
+	
+	return counts
+
+# Count the number of collectible objects in the scene
+func count_collectible_objects():
+	var counts = {
+		"total": 0,
+		"common": 0,
+		"rare": 0,
+		"epic": 0,
+		"special": 0,
+		"detected": 0, # Collectibles that have been found/detected
+		"collected": 0 # Collectibles that have been fully collected
+	}
+	
+	var collectible_nodes = get_tree().get_nodes_in_group("collectible")
+	counts["total"] = collectible_nodes.size()
+	
+	for collectible in collectible_nodes:
+		if collectible is Collectible:
+			var type = collectible.collectible_type
+			if type in counts:
+				counts[type] += 1
+				
+			# Count detected and collected collectibles
+			if "detected" in collectible and collectible.detected:
+				counts["detected"] += 1
+				
+			if "collected" in collectible and collectible.collected:
 				counts["collected"] += 1
 	
 	return counts
