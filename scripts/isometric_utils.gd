@@ -8,8 +8,27 @@ class_name IsometricUtils
 const DEFAULT_TILE_WIDTH = 32
 const DEFAULT_TILE_HEIGHT = 16
 
+# Get the appropriate scaled tile dimensions
+static func get_scaled_tile_width() -> float:
+	var scale_factor = 1.0
+	if Engine.has_singleton("GameScale"):
+		scale_factor = Engine.get_singleton("GameScale").SCALE_FACTOR
+	return DEFAULT_TILE_WIDTH * scale_factor
+
+static func get_scaled_tile_height() -> float:
+	var scale_factor = 1.0
+	if Engine.has_singleton("GameScale"):
+		scale_factor = Engine.get_singleton("GameScale").SCALE_FACTOR
+	return DEFAULT_TILE_HEIGHT * scale_factor
+
 # Convert world position to isometric tile coordinates
-static func world_to_tile(world_pos: Vector2, tile_width: float = DEFAULT_TILE_WIDTH, tile_height: float = DEFAULT_TILE_HEIGHT) -> Vector2i:
+static func world_to_tile(world_pos: Vector2, tile_width: float = -1, tile_height: float = -1) -> Vector2i:
+	# If no specific dimensions provided, use the scaled defaults
+	if tile_width <= 0:
+		tile_width = get_scaled_tile_width()
+	if tile_height <= 0:
+		tile_height = get_scaled_tile_height()
+		
 	var screen_x = world_pos.x
 	var screen_y = world_pos.y
 	
@@ -20,7 +39,13 @@ static func world_to_tile(world_pos: Vector2, tile_width: float = DEFAULT_TILE_W
 	return Vector2i(int(floor(tile_x)), int(floor(tile_y)))
 
 # Convert isometric tile coordinates to world position
-static func tile_to_world(tile_coords: Vector2i, tile_width: float = DEFAULT_TILE_WIDTH, tile_height: float = DEFAULT_TILE_HEIGHT) -> Vector2:
+static func tile_to_world(tile_coords: Vector2i, tile_width: float = -1, tile_height: float = -1) -> Vector2:
+	# If no specific dimensions provided, use the scaled defaults
+	if tile_width <= 0:
+		tile_width = get_scaled_tile_width()
+	if tile_height <= 0:
+		tile_height = get_scaled_tile_height()
+		
 	var iso_x = (tile_coords.x - tile_coords.y) * tile_width
 	var iso_y = (tile_coords.x + tile_coords.y) * tile_height / 2
 	
@@ -44,9 +69,15 @@ static func is_within_boundaries(
 	pos: Vector2,
 	min_x: int, max_x: int,
 	min_y: int, max_y: int,
-	tile_width: float = DEFAULT_TILE_WIDTH,
-	tile_height: float = DEFAULT_TILE_HEIGHT
+	tile_width: float = -1,
+	tile_height: float = -1
 ) -> bool:
+	# If no specific dimensions provided, use the scaled defaults
+	if tile_width <= 0:
+		tile_width = get_scaled_tile_width()
+	if tile_height <= 0:
+		tile_height = get_scaled_tile_height()
+		
 	var tile_pos = world_to_tile(pos, tile_width, tile_height)
 	return (
 		tile_pos.x >= min_x and
@@ -60,9 +91,15 @@ static func get_valid_position(
 	pos: Vector2,
 	min_x: int, max_x: int,
 	min_y: int, max_y: int,
-	tile_width: float = DEFAULT_TILE_WIDTH,
-	tile_height: float = DEFAULT_TILE_HEIGHT
+	tile_width: float = -1,
+	tile_height: float = -1
 ) -> Vector2:
+	# If no specific dimensions provided, use the scaled defaults
+	if tile_width <= 0:
+		tile_width = get_scaled_tile_width()
+	if tile_height <= 0:
+		tile_height = get_scaled_tile_height()
+		
 	var tile_pos = world_to_tile(pos, tile_width, tile_height)
 	
 	# Clamp values to boundaries
@@ -73,12 +110,24 @@ static func get_valid_position(
 	return tile_to_world(tile_pos, tile_width, tile_height)
 
 # Convert between isometric and cartesian coordinates
-static func iso_to_cart(iso_pos: Vector2, tile_width: float = DEFAULT_TILE_WIDTH, tile_height: float = DEFAULT_TILE_HEIGHT) -> Vector2:
+static func iso_to_cart(iso_pos: Vector2, tile_width: float = -1, tile_height: float = -1) -> Vector2:
+	# If no specific dimensions provided, use the scaled defaults
+	if tile_width <= 0:
+		tile_width = get_scaled_tile_width()
+	if tile_height <= 0:
+		tile_height = get_scaled_tile_height()
+		
 	var cart_x = (iso_pos.x / tile_width + iso_pos.y / (tile_height / 2)) / 2
 	var cart_y = (iso_pos.y / (tile_height / 2) - iso_pos.x / tile_width) / 2
 	return Vector2(cart_x, cart_y)
 
-static func cart_to_iso(cart_pos: Vector2, tile_width: float = DEFAULT_TILE_WIDTH, tile_height: float = DEFAULT_TILE_HEIGHT) -> Vector2:
+static func cart_to_iso(cart_pos: Vector2, tile_width: float = -1, tile_height: float = -1) -> Vector2:
+	# If no specific dimensions provided, use the scaled defaults
+	if tile_width <= 0:
+		tile_width = get_scaled_tile_width()
+	if tile_height <= 0:
+		tile_height = get_scaled_tile_height()
+		
 	var iso_x = (cart_pos.x - cart_pos.y) * tile_width
 	var iso_y = (cart_pos.x + cart_pos.y) * tile_height / 2
 	return Vector2(iso_x, iso_y)

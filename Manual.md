@@ -60,14 +60,56 @@ The game uses a custom isometric system implemented through two main scripts:
    - `get_tile_neighbors(tile_coords)`: Returns array of neighboring tile coordinates
    - `get_isometric_distance(tile_a, tile_b)`: Calculates Manhattan distance between tiles
 
-#### 2. Input System
+#### 2. Scaling System
+
+The game implements a flexible scaling system to support different resolution displays and zoom levels while maintaining correct positioning between editor and runtime:
+
+- `game_scale.gd`: A singleton (autoloaded as "GameScale") that manages game scaling
+- `scale_helper.gd`: A utility class (autoloaded as "ScaleHelper") with helper functions for scaling operations
+
+**Scale Configuration**
+
+- Default Scale Factor: 3.0 (configurable in `game_scale.gd`)
+- Objects positioned in the editor are automatically scaled and repositioned at runtime
+
+**Key Scaling Functions**
+
+1. Position Transformations (in GameScale):
+
+   - `editor_to_runtime(position)`: Converts editor positions to scaled runtime positions
+   - `runtime_to_editor(position)`: Converts runtime positions back to editor scale
+   - `scale_value(value)`: Scales a single numeric value
+   - `unscale_value(value)`: Unscales a value back to editor scale
+
+2. Helper Utilities (in ScaleHelper):
+
+   - `get_scale_factor()`: Returns the current global scale factor
+   - `scale_position(position)`: Scales a Vector2 position
+   - `scale_size(size)`: Scales a size/dimension Vector2
+   - `is_scaled(node)`: Checks if a node has already been scaled
+   - `adjust_sprite_animation(sprite)`: Configures a sprite for proper scaling
+   - `adjust_collision_shape(shape)`: Adjusts a collision shape for the current scale
+
+3. Scale-Aware Isometric Utilities:
+   - All isometric utility functions automatically respect the current scale factor
+   - `get_scaled_tile_width()`: Returns the scaled tile width
+   - `get_scaled_tile_height()`: Returns the scaled tile height
+
+**How Scaling Works**
+
+1. The GameScale singleton applies scaling to all game elements when the scene loads
+2. Object positions in the editor are multiplied by the scale factor at runtime
+3. All movement and positioning calculations use scale-aware functions
+4. When scale changes, a signal is emitted to allow objects to update their scaled values
+
+#### 3. Input System
 
 The game uses the following input mappings:
 
 - Movement: Arrow keys or gamepad
 - Smell Action: Spacebar
 
-#### 3. Smell System
+#### 4. Smell System
 
 The game features a sophisticated smell detection and collection system:
 
@@ -185,8 +227,53 @@ The game features a sophisticated smell detection and collection system:
    - Adjust movement speed and interaction ranges in player scripts
 
 3. **UI Modifications**
+
    - UI elements are stored in `scenes/UI/`
    - Follow Godot's Control node system for UI layout
+
+4. **Working with the Scaling System**
+   - The game's scaling system allows for flexible resolution support while maintaining proper positioning
+   - To adjust the global scale factor, modify `SCALE_FACTOR` in `scripts/game_scale.gd`
+   - When creating new objects or values that need scaling:
+
+     ```gdscript
+     # Get access to scaling utilities
+     if Engine.has_singleton("ScaleHelper"):
+         var scale_helper = Engine.get_singleton("ScaleHelper")
+
+     # Scale a single value
+     var scaled_value = ScaleHelper.scale_value(original_value)
+
+     # Scale a position
+     var scaled_position = ScaleHelper.scale_position(original_position)
+
+     # Check if a node is already scaled
+     if not ScaleHelper.is_scaled(my_node):
+         # Scale the node's position
+         my_node.position = ScaleHelper.editor_to_runtime(my_node.position)
+         my_node.scale = Vector2(ScaleHelper.get_scale_factor(), ScaleHelper.get_scale_factor())
+     ```
+
+   - For collision shapes, use the helper function:
+     ```gdscript
+     ScaleHelper.adjust_collision_shape(my_collision_shape)
+     ```
+   - When adding new elements that need to respond to scale changes:
+
+     ```gdscript
+     # Connect to the scale changed signal
+     if Engine.has_singleton("GameScale"):
+         var game_scale = Engine.get_singleton("GameScale")
+         if game_scale.has_signal("scale_changed"):
+             game_scale.connect("scale_changed", _on_scale_changed)
+
+     # Handle scale changes
+     func _on_scale_changed(new_scale):
+         # Update scale-dependent values
+         my_value = original_value * new_scale
+     ```
+
+   - The isometric utility functions automatically use the current scale factor
 
 ### Godot-Specific Considerations
 

@@ -3,7 +3,7 @@ class_name Player
 
 # Movement constants
 const MOVE_SPEED = 300
-# Isometric tile dimensions
+# Isometric tile dimensions - these will use the scaled values at runtime
 const TILE_WIDTH = 32
 const TILE_HEIGHT = 16
 
@@ -11,6 +11,9 @@ const TILE_HEIGHT = 16
 var base_speed = 150
 var current_speed = base_speed
 var is_moving = false
+
+# Reference to the game scale singleton for scaling values
+var game_scale
 
 # Smell detection
 var is_smelling = false
@@ -47,6 +50,14 @@ var position_report_interval = 0.5 # Report position at most every half second
 
 # Called when the node enters the scene tree for the first time
 func _ready():
+	# Get reference to the game scale singleton if available
+	if Engine.has_singleton("GameScale"):
+		game_scale = Engine.get_singleton("GameScale")
+		
+		# Connect to scale changed signal if available
+		if game_scale.has_signal("scale_changed"):
+			game_scale.connect("scale_changed", _on_scale_changed)
+			
 	original_y = position.y
 	base_position_y = position.y # Initialize base position
 	
@@ -66,8 +77,87 @@ func _ready():
 	# Print initial position for debugging
 	if debug_mode:
 		print("Initial position: ", position)
-		var initial_tile = IsometricUtils.world_to_tile(position, TILE_WIDTH, TILE_HEIGHT)
+		var initial_tile = IsometricUtils.world_to_tile(position)
 		print("Initial tile: ", initial_tile)
+	
+	# Set up a timer to check for smells in range periodically
+	var range_check_timer = Timer.new()
+	range_check_timer.name = "RangeCheckTimer"
+	range_check_timer.wait_time = 0.2 # Check 5 times per second
+	range_check_timer.one_shot = false
+	range_check_timer.connect("timeout", _on_range_check_timer_timeout)
+	add_child(range_check_timer)
+	range_check_timer.start()
+
+# Handler for scale changes
+func _on_scale_changed(new_scale):
+	# Update any values that need to be adjusted when scale changes
+	if debug_mode:
+		print("Scale changed to: ", new_scale)
+		
+	# Recalculate any scaled values
+	update_scaled_values()
+
+# Update scaled values based on current scale
+func update_scaled_values():
+	if not game_scale:
+		return
+		
+	# Get scaled size for smell detector
+	if has_node("SmellDetector"):
+		var smell_detector = $SmellDetector
+		if smell_detector.get_child_count() > 0:
+			var collision_shape = smell_detector.get_child(0)
+			if collision_shape is CollisionShape2D and collision_shape.shape is CircleShape2D:
+				# Base radius is 32, multiply by scale
+				collision_shape.shape.radius = 32 * game_scale.SCALE_FACTOR
+	
+	# Update any other scale-dependent values
+	float_height = 3 * game_scale.SCALE_FACTOR
+	wiggle_width = 4 * game_scale.SCALE_FACTOR
+	wiggle_intensity = 2.5 * game_scale.SCALE_FACTOR
+
+# Tracks which smells were in range last time we checked
+var previous_smells_in_range = []
+
+# Periodically check for smells in range to update their indicators
+func _on_range_check_timer_timeout():
+	if is_smelling:
+		return # Don't update during smell action
+		
+	var smell_detector = get_node_or_null("SmellDetector")
+	if smell_detector:
+		var overlapping_areas = smell_detector.get_overlapping_areas()
+		var current_smells_in_range = []
+		
+		# Find all smells currently in range
+		for area in overlapping_areas:
+			if area is Smell or (area.get_parent() is Smell):
+				var smell = area if area is Smell else area.get_parent()
+				current_smells_in_range.append(smell)
+		
+		# Sort by distance
+		if current_smells_in_range.size() > 1:
+			current_smells_in_range.sort_custom(func(a, b):
+				var dist_a = global_position.distance_to(a.global_position)
+				var dist_b = global_position.distance_to(b.global_position)
+				return dist_a < dist_b
+			)
+		
+		# Update each smell's status
+		for i in range(current_smells_in_range.size()):
+			var smell = current_smells_in_range[i]
+			if smell.has_method("in_range") and not smell.collected:
+				smell.in_range(i == 0) # Pass true if it's the closest smell
+		
+		# Call out_of_range for smells that are no longer in range
+		for smell in previous_smells_in_range:
+			if is_instance_valid(smell) and not current_smells_in_range.has(smell):
+				if smell.has_method("out_of_range") and not smell.collected:
+					smell.out_of_range()
+		
+		# Update the tracking list
+		previous_smells_in_range = current_smells_in_range
 
 # Setup the smell timer
 func setup_smell_timer():
@@ -84,10 +174,16 @@ func setup_smell_detector():
 		var smell_detector = Area2D.new()
 		smell_detector.name = "SmellDetector"
 		
-		# Create a circle shape with 64px radius for smell detection
+		# Create a circle shape with scaled radius for smell detection
 		var collision_shape = CollisionShape2D.new()
 		var shape = CircleShape2D.new()
-		shape.radius = 64 # Match with visual smell radius
+		
+		# Base radius is 32, apply scale if available
+		var radius = 32.0
+		if game_scale:
+			radius *= game_scale.SCALE_FACTOR
+			
+		shape.radius = radius
 		collision_shape.shape = shape
 		smell_detector.add_child(collision_shape)
 		
@@ -126,7 +222,12 @@ func setup_smell_particles():
 		particles.emitting = false
 		
 		# Position the particles slightly above the character's head
-		particles.position = Vector2(0, -20)
+		# Scale this offset if game scale is available
+		var y_offset = -20.0
+		if game_scale:
+			y_offset *= game_scale.SCALE_FACTOR
+			
+		particles.position = Vector2(0, y_offset)
 		
 		add_child(particles)
 		smell_particles = particles
@@ -165,7 +266,7 @@ func _process(delta):
 		position_report_timer += delta
 		if position_report_timer >= position_report_interval:
 			position_report_timer = 0
-			var current_tile_pos = IsometricUtils.world_to_tile(global_position, TILE_WIDTH, TILE_HEIGHT)
+			var current_tile_pos = IsometricUtils.world_to_tile(global_position)
 			
 			# Only report if position changed
 			if current_tile_pos != last_reported_tile_pos:
@@ -282,7 +383,7 @@ func _on_smell_timer_timeout():
 func find_pending_smells():
 	# Debug print
 	if debug_mode:
-		print("Finding nearby smells (to be processed after animation)")
+		print("Finding nearby smells (will only process the closest one after animation)")
 	
 	# Get all overlapping areas
 	var smell_detector = get_node_or_null("SmellDetector")
@@ -290,7 +391,10 @@ func find_pending_smells():
 		var overlapping_areas = smell_detector.get_overlapping_areas()
 		
 		if debug_mode:
-			print("Found " + str(overlapping_areas.size()) + " overlapping areas")
+			if overlapping_areas.size() > 1:
+				print("Found " + str(overlapping_areas.size()) + " overlapping areas, will sort by distance")
+			else:
+				print("Found " + str(overlapping_areas.size()) + " overlapping areas")
 		
 		# Clear any previous pending smells
 		pending_smells = []
@@ -309,6 +413,23 @@ func find_pending_smells():
 		
 		if pending_smells.is_empty() and debug_mode:
 			print("No smell objects found in range to process later")
+		# Sort smells by distance
+		elif pending_smells.size() > 1:
+			# Sort the pending smells by distance to player
+			pending_smells.sort_custom(func(a, b):
+				var dist_a = global_position.distance_to(a.global_position)
+				var dist_b = global_position.distance_to(b.global_position)
+				return dist_a < dist_b
+			)
+			
+			if debug_mode:
+				print("Sorted " + str(pending_smells.size()) + " smells by distance, closest is " + pending_smells[0].smell_name)
+				
+			# Signal all pending smells that they are in range but only the closest will be processed
+			for i in range(pending_smells.size()):
+				# Call in_range method on all smells
+				if pending_smells[i].has_method("in_range"):
+					pending_smells[i].in_range(i == 0) # Pass true if it's the closest smell
 
 # Process all pending smells after the animation completes
 func process_pending_smells():
@@ -318,34 +439,36 @@ func process_pending_smells():
 		return
 	
 	if debug_mode:
-		print("Processing " + str(pending_smells.size()) + " pending smells")
+		print("Processing " + str(pending_smells.size()) + " pending smells, but will only detect the first one")
 	
-	for smell in pending_smells:
-		if is_instance_valid(smell) and not smell.collected:
+	# Only process the closest/first smell in the list
+	var smell = pending_smells[0]
+	
+	if is_instance_valid(smell) and not smell.collected:
+		if debug_mode:
+			print("Processing smell: " + smell.smell_name)
+		
+		# Connect to the smell's signals
+		if not smell.is_connected("animation_completed", _on_smell_animation_completed):
+			smell.connect("animation_completed", _on_smell_animation_completed)
+			
+		# Connect to the smell's smell_detected signal
+		if not smell.is_connected("smell_detected", _on_smell_detected):
+			smell.connect("smell_detected", _on_smell_detected)
+		
+		# Call detect method on the smell
+		if smell.has_method("detect"):
+			smell.detect()
+			
+			# Set detected flag
+			if "detected" in smell:
+				smell.detected = true
+			
 			if debug_mode:
-				print("Processing smell: " + smell.smell_name)
-			
-			# Connect to the smell's signals
-			if not smell.is_connected("animation_completed", _on_smell_animation_completed):
-				smell.connect("animation_completed", _on_smell_animation_completed)
-				
-			# Connect to the smell's smell_detected signal
-			if not smell.is_connected("smell_detected", _on_smell_detected):
-				smell.connect("smell_detected", _on_smell_detected)
-			
-			# Call detect method on the smell
-			if smell.has_method("detect"):
-				smell.detect()
-				
-				# Set detected flag
-				if "detected" in smell:
-					smell.detected = true
-				
-				if debug_mode:
-					print("Detected smell: ", smell.smell_name, " (", smell.smell_type, ")")
-			else:
-				if debug_mode:
-					print("Smell object doesn't have detect method!")
+				print("Detected smell: ", smell.smell_name, " (", smell.smell_type, ")")
+		else:
+			if debug_mode:
+				print("Smell object doesn't have detect method!")
 	
 	# Clear the pending smells list
 	pending_smells = []

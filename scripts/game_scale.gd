@@ -6,6 +6,9 @@ const SCALE_FACTOR = 3.0
 # Nodes that should be excluded from scaling (UI elements)
 var exclude_scaling = ["CanvasLayer", "TitleLabel", "Camera2D"]
 
+# Signals for scale changes
+signal scale_changed(new_scale)
+
 func _ready():
 	# Wait for one frame to ensure all nodes are ready
 	await get_tree().process_frame
@@ -27,6 +30,46 @@ func _process(_delta):
 	# This is needed because some nodes might adjust their filtering during gameplay
 	enforce_texture_filter_on_tilemaps()
 
+# Utility functions for coordinate transformations
+static func editor_to_runtime(position: Vector2) -> Vector2:
+	return position * SCALE_FACTOR
+
+static func runtime_to_editor(position: Vector2) -> Vector2:
+	return position / SCALE_FACTOR
+
+static func scale_value(value: float) -> float:
+	return value * SCALE_FACTOR
+
+static func unscale_value(value: float) -> float:
+	return value / SCALE_FACTOR
+
+# Convert a node's editor position to the correct runtime position
+func convert_editor_to_runtime_position(node: Node2D):
+	if node == null:
+		return
+		
+	# Skip nodes that should not be scaled
+	for exclude_name in exclude_scaling:
+		if exclude_name in node.name:
+			return
+	
+	# Check if it's a CanvasLayer or derived from it
+	if node.get_class() == "CanvasLayer" or "CanvasLayer" in node.get_class():
+		return
+			
+	# For nodes that were positioned in the editor but not scaled yet
+	if node.scale.x != SCALE_FACTOR:
+		# Store the original editor position
+		var editor_position = node.position
+		
+		# Scale the node
+		node.scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
+		
+		# Adjust position to match what would be expected in the editor
+		# This is crucial - we need to multiply the position by the scale factor
+		# since scale is applied to the node but not to its position
+		node.position = editor_to_runtime(editor_position)
+
 func scale_game_elements():
 	# Get the main scene (assumed to be the parent)
 	var main_scene = get_parent()
@@ -40,12 +83,15 @@ func scale_game_elements():
 	# Scale the player
 	if main_scene.has_node("nose"):
 		var player = main_scene.get_node("nose")
-		player.scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
+		convert_editor_to_runtime_position(player)
 		apply_nearest_neighbor_filter(player)
 	
 	# Scale all smell objects and other elements
 	for child in main_scene.get_children():
 		scale_node_if_needed(child)
+	
+	# Emit signal that scaling has been applied
+	emit_signal("scale_changed", SCALE_FACTOR)
 
 func scale_all_smells(parent_node):
 	# Find and scale all smell objects
@@ -64,7 +110,7 @@ func scale_node_if_needed(node):
 	
 	# Scale smell objects
 	if "Smell" in node.name:
-		node.scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
+		convert_editor_to_runtime_position(node)
 		apply_nearest_neighbor_filter(node)
 	
 	# Scale map objects
@@ -74,7 +120,7 @@ func scale_node_if_needed(node):
 	
 	# Scale player object
 	elif node.name == "nose":
-		node.scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
+		convert_editor_to_runtime_position(node)
 		apply_nearest_neighbor_filter(node)
 
 # Apply nearest neighbor filtering to a node and its children
@@ -143,12 +189,12 @@ func adjust_ui_positions():
 	if main_scene.has_node("TitleLabel"):
 		var title_label = main_scene.get_node("TitleLabel")
 		# Move the title label upward to avoid overlap with scaled game elements
-		title_label.position.y -= 50
+		title_label.position.y -= scale_value(50)
 
 func _on_node_added(node):
 	# Scale any new nodes that are added dynamically
-	if node.get_parent() == get_parent():
-		scale_node_if_needed(node)
+	if node.get_parent() == get_parent() and node is Node2D:
+		convert_editor_to_runtime_position(node)
 		
 	# Apply pixel-perfect filtering to new nodes
 	if node.has_method("set_texture_filter"):

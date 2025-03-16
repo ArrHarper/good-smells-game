@@ -54,6 +54,13 @@ The project follows Godot best practices with a clear organization:
 - Efficient boundary management for map navigation
 - Proper tile-based isometric movement
 
+### Scaling System
+
+- Flexible scaling system for different resolutions and zoom levels
+- Automatic position correction between editor and runtime
+- Scale-aware utility functions for consistent game element sizing
+- Centralized scale management through GameScale and ScaleHelper singletons
+
 ### Game Mechanics
 
 - **Smell Detection**: Implemented collision and proximity-based detection
@@ -70,6 +77,7 @@ The project follows Godot best practices with a clear organization:
 - Core game loop with smell detection and collection
 - Basic UI system for player feedback
 - Title screen with game flow management
+- Adaptive scaling system for consistent positioning across different resolutions
 
 ## Next Development Steps
 
@@ -103,6 +111,21 @@ We've implemented a custom isometric system with the following components:
 
 - `isometric_utils.gd`: Utility class for coordinate conversions and calculations
 - `isometric_sorter.gd`: Handles proper rendering order of objects in isometric space
+
+### Scaling System
+
+Our game uses a dynamic scaling system with these components:
+
+- `game_scale.gd`: Manages the scale factor and handles object scaling
+- `scale_helper.gd`: Provides utility functions for working with scaled values
+- Scale-aware isometric utilities that adjust calculations based on scale factor
+- Signal system to notify objects when scale changes
+
+This system ensures:
+
+- Consistent appearance across different resolutions
+- Proper alignment between editor-positioned objects and runtime display
+- Easy adjustment of game scale for testing and optimization
 
 ### Player Movement
 

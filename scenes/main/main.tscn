@@ -53,7 +53,7 @@ points = 25
 particles_color = Color(0.761784, 0.0833806, 0.45085, 0.898039)
 
 [node name="BadSmell1" parent="." instance=ExtResource("4_lfxvs")]
-position = Vector2(97, -46)
+position = Vector2(41, -55)
 smell_name = "Garbage"
 smell_type = "bad"
 smell_message = "Eww, something stinks!"
@@ -62,7 +62,7 @@ particles_color = Color(0.394606, 0.401839, 1.92523e-07, 1)
 
 [node name="EpicSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 1
-position = Vector2(128, 64)
+position = Vector2(39, 30)
 smell_name = "Chocolate"
 smell_type = "epic"
 smell_message = "Delicious chocolate!"

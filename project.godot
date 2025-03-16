@@ -18,6 +18,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 Iso="*res://scripts/isometric_utils.gd"
+GameScale="*res://scripts/game_scale.gd"
+ScaleHelper="*res://scripts/globals/scale_helper.gd"
 
 [display]
 

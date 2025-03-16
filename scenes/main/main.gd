@@ -140,7 +140,7 @@ func _on_smell_detected(smell_text, smell_type):
 		print("SMELL SIGNAL: - Message: '" + smell_text + "'")
 		print("SMELL SIGNAL: - Type: '" + smell_type + "'")
 	
-	# Show the message via UI
+	# Show the message via UI - only one smell is detected at a time
 	if ui_instance:
 		ui_instance.show_smell_message(smell_text, smell_type)
 	elif debug_mode:
