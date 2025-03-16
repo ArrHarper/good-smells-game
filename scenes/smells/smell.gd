@@ -302,4 +302,17 @@ func mark_collected():
 			indicator_node.visible = false
 		
 		# Here we can add any additional logic needed when a smell is collected
-		# For example, update a score counter, play a sound, etc. 
+		# For example, update a score counter, play a sound, etc.
+
+# Reset the smell object's state
+func reset():
+	# Reset collection and detection flags
+	collected = false
+	detected = false
+	
+	print("Smell reset: " + smell_name)
+	
+	# If the indicator exists, ensure it can show again when player gets in range
+	if indicator_node:
+		indicator_node.modulate.a = 0
+		indicator_node.visible = true

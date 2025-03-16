@@ -24,6 +24,18 @@ func _ready():
 	# Enable process for updates
 	set_process(true)
 
+# Handle input events
+func _unhandled_input(event):
+	# Check for Escape key press to toggle menu
+	if event.is_action_pressed("ui_cancel"):
+		var escape_menu = get_node_or_null("EscapeMenu")
+		if escape_menu:
+			if escape_menu.visible:
+				escape_menu.close_menu()
+			else:
+				escape_menu.open_menu()
+		get_viewport().set_input_as_handled()
+
 func _process(delta):
 	# Update debug information
 	debug_update_timer += delta

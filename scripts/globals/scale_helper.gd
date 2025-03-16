@@ -9,9 +9,17 @@ static var exclude_scaling = ["CanvasLayer", "TitleLabel", "Camera2D"]
 # Signals for scale changes
 signal scale_changed(new_scale)
 
+# Default scale tracker
+var is_scaled_applied = false
+
 # Get the current scale factor
 static func get_scale_factor() -> float:
 	return SCALE_FACTOR
+
+# Reset scale state - called when restarting the level
+func reset_scale():
+	is_scaled_applied = false
+	emit_signal("scale_changed", SCALE_FACTOR)
 
 # Scale a single value
 static func scale_value(value: float) -> float:

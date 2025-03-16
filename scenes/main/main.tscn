@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://c7bt0nydphmi0"]
+[gd_scene load_steps=14 format=3 uid="uid://c7bt0nydphmi0"]
 
 [ext_resource type="Script" uid="uid://by87fmp5hhobc" path="res://scenes/main/main.gd" id="1_0wfyh"]
 [ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="3_6q06x"]
@@ -8,8 +8,10 @@
 [ext_resource type="Texture2D" uid="uid://b31no3hoshypl" path="res://assets/images/trashcan.png" id="9_a8run"]
 [ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="9_m3u8n"]
 [ext_resource type="Texture2D" uid="uid://dkgqvkccdjn4q" path="res://assets/images/gymbag.png" id="10_ouso4"]
-[ext_resource type="Script" path="res://scripts/isometric_sorter.gd" id="10_sorter"]
+[ext_resource type="Script" uid="uid://c4sgqa6wqwmw5" path="res://scripts/isometric_sorter.gd" id="10_sorter"]
+[ext_resource type="Texture2D" uid="uid://bxucoxsvw7plu" path="res://assets/images/hotdogpicnictable.png" id="11_ouso4"]
 [ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="11_scaler"]
+[ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="12_blune"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]
 font = ExtResource("3_6q06x")
@@ -47,7 +49,7 @@ position = Vector2(-102, -26)
 
 [node name="GoodSmell1" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
-position = Vector2(-76, -27)
+position = Vector2(-67, -26)
 smell_name = "Flowers"
 smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
@@ -91,9 +93,19 @@ z_index = 5
 y_sort_enabled = true
 
 [node name="GymbagSprite" type="Sprite2D" parent="MapObjects"]
-position = Vector2(78, -25)
+position = Vector2(78, -22)
+scale = Vector2(0.78125, 0.84375)
 texture = ExtResource("10_ouso4")
 
 [node name="TrashcanSprite" type="Sprite2D" parent="MapObjects"]
-position = Vector2(15, -61)
+position = Vector2(13, -65)
 texture = ExtResource("9_a8run")
+
+[node name="Sprite2D" type="Sprite2D" parent="MapObjects"]
+position = Vector2(-68, -24)
+scale = Vector2(1.79688, 1.60938)
+texture = ExtResource("11_ouso4")
+
+[node name="Sprite2D2" type="Sprite2D" parent="MapObjects"]
+position = Vector2(-48, 54)
+texture = ExtResource("12_blune")

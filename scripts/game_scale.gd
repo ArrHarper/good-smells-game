@@ -3,12 +3,22 @@ extends Node
 # This script handles the game scaling and applies it to all relevant nodes
 # Now uses the consolidated ScaleHelper class
 
+# Tracking variable to prevent double-scaling on restart
+var has_scaled = false
+
 func _ready():
 	# Wait for one frame to ensure all nodes are ready
 	await get_tree().process_frame
 	
-	# Apply scale to the game world
-	scale_game_elements()
+	# Connect to the ScaleHelper's scale_changed signal
+	var scale_helper = get_node_or_null("/root/ScaleHelper")
+	if scale_helper:
+		scale_helper.scale_changed.connect(_on_scale_changed)
+	
+	# Apply scale to the game world if not already scaled
+	if not has_scaled:
+		scale_game_elements()
+		has_scaled = true
 	
 	# Adjust positions of UI elements to account for scaling
 	adjust_ui_positions()
@@ -18,6 +28,10 @@ func _ready():
 	
 	# Connect to the node added signal to scale any dynamically created objects
 	get_tree().node_added.connect(_on_node_added)
+
+# Handler for scale changes (called when restarting)
+func _on_scale_changed(new_scale):
+	has_scaled = false
 
 # We no longer need to run this every frame - remove _process
 # Instead we'll ensure textures are set correctly in the initial setup
