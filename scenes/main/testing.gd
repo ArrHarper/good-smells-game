@@ -35,9 +35,6 @@ func _ready():
 	# Position smells on the isometric map if needed
 	position_smells_isometrically()
 	
-	# Initialize isometric sorter
-	initialize_isometric_sorting()
-	
 	# Setup additional testing specific functionality
 	setup_testing_environment()
 	
@@ -121,28 +118,6 @@ func position_smells_isometrically():
 	if debug_mode:
 		for smell in smell_nodes:
 			print("Smell: ", smell.name, " with z-index ", smell.z_index)
-
-# Function to initialize the isometric sorting system
-func initialize_isometric_sorting():
-	if has_node("IsometricSorter"):
-		var sorter = $IsometricSorter
-		
-		# Add all objects that should be sorted (player, smells, collectibles, etc.)
-		if has_node("nose"):
-			sorter.add_sorted_object($nose)
-			
-		# Add smell objects
-		var smell_nodes = get_tree().get_nodes_in_group("smell")
-		for smell in smell_nodes:
-			sorter.add_sorted_object(smell)
-		
-		# Add collectible objects
-		var collectible_nodes = get_tree().get_nodes_in_group("collectible")
-		for collectible in collectible_nodes:
-			sorter.add_sorted_object(collectible)
-		
-		if debug_mode:
-			print("Initialized isometric sorting with objects")
 
 # Handle smell detection from player - This is now unused as messages appear above player
 func _on_smell_detected(smell_text, smell_type):

@@ -110,7 +110,6 @@ To contribute to this project:
 We've implemented a custom isometric system with the following components:
 
 - `isometric_utils.gd`: Utility class for coordinate conversions and calculations
-- `isometric_sorter.gd`: Handles proper rendering order of objects in isometric space
 
 ### Scaling System
 
@@ -147,7 +146,7 @@ Smell objects feature:
 
 ## Z-Index Management
 
-The game uses fixed z-index values for proper layering in the isometric perspective:
+The game uses fixed z-index values and Godot's built-in y_sort_enabled for proper layering in the isometric perspective:
 
 - IsometricMap: z-index = -1 (always at the bottom)
 - MapObjects: z-index = 5 (fixed value for all objects)
@@ -155,4 +154,4 @@ The game uses fixed z-index values for proper layering in the isometric perspect
 - Player: z-index = 10 (always on top of map and objects)
 - UI elements: Managed by CanvasLayer
 
-Map objects and smells are kept as separate nodes to avoid z-index conflicts.
+Map objects and smells use Godot's built-in Y-sorting for proper overlapping based on their Y position. The root node has y_sort_enabled = true to automatically handle depth sorting.

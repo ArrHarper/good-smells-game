@@ -1,7 +1,7 @@
 extends Node
 
 # Scale factor for game elements - should match window/stretch/scale in project settings
-const SCALE_FACTOR = 2.0
+const SCALE_FACTOR = 3.0
 
 # Nodes that should be excluded from scaling (UI elements)
 static var exclude_scaling = ["CanvasLayer", "TitleLabel", "Camera2D"]

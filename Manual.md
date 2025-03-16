@@ -2,7 +2,7 @@
 
 ## Game Overview
 
-Good Smells is an isometric game built in Godot 4.4 that focuses on smell-based mechanics. The game utilizes a custom isometric system for movement and object sorting.
+Good Smells is an isometric game built in Godot 4.4 that focuses on smell-based mechanics. The game utilizes a custom isometric system for movement and Godot's built-in Y-sorting for object depth management.
 
 ## Technical Architecture
 
@@ -17,7 +17,6 @@ good-smells/
 │   └── smells/      # Smell mechanic related scenes
 ├── scripts/         # Game logic and utilities
 │   ├── globals/     # Global script singletons
-│   ├── isometric_sorter.gd    # Handles isometric depth sorting
 │   └── isometric_utils.gd     # Isometric utility functions
 └── assets/          # Game assets (textures, sounds, etc.)
 ```
@@ -26,10 +25,10 @@ good-smells/
 
 #### 1. Isometric System
 
-The game uses a custom isometric system implemented through two main scripts:
+The game uses a custom isometric system implemented through the isometric utilities and Godot's built-in Y-sorting:
 
 - `isometric_utils.gd`: A singleton (autoloaded as "Iso") that provides utility functions for isometric calculations
-- `isometric_sorter.gd`: Handles depth sorting for isometric objects
+- Godot's `y_sort_enabled` property: Used on the main scene and key containers to automatically handle depth sorting
 
 **Isometric Configuration**
 
@@ -59,6 +58,14 @@ The game uses a custom isometric system implemented through two main scripts:
 4. Tile Operations:
    - `get_tile_neighbors(tile_coords)`: Returns array of neighboring tile coordinates
    - `get_isometric_distance(tile_a, tile_b)`: Calculates Manhattan distance between tiles
+
+**Object Depth Sorting**
+
+The game uses Godot's built-in Y-sorting to handle the overlapping of objects in isometric space:
+
+- The main Node2D containers have `y_sort_enabled = true`
+- Objects higher on the screen (lower Y value) appear behind objects lower on the screen
+- Fixed z-index values are used for layering categories of objects (map, objects, player, UI)
 
 #### 2. Scaling System
 
@@ -176,7 +183,6 @@ The game features a sophisticated smell detection and collection system:
 
 2. **Isometric Settings**
    - Modify isometric calculations in `isometric_utils.gd`
-   - Adjust sorting behavior in `isometric_sorter.gd`
 
 ### Best Practices
 
@@ -232,6 +238,7 @@ The game features a sophisticated smell detection and collection system:
    - Follow Godot's Control node system for UI layout
 
 4. **Working with the Scaling System**
+
    - The game's scaling system allows for flexible resolution support while maintaining proper positioning
    - To adjust the global scale factor, modify `SCALE_FACTOR` in `scripts/game_scale.gd`
    - When creating new objects or values that need scaling:
@@ -301,7 +308,6 @@ Common issues and their solutions:
 1. **Depth Sorting Issues**
 
    - Ensure objects have proper Y-sort enabled
-   - Check isometric_sorter.gd configuration
    - Verify object pivot points
 
 2. **Performance Optimization**
