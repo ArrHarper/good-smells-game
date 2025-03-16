@@ -558,7 +558,7 @@ func display_smell_message(text, type):
 	smell_message_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	smell_message_label.add_theme_constant_override("shadow_offset_x", 1)
 	smell_message_label.add_theme_constant_override("shadow_offset_y", 1)
-	smell_message_label.add_theme_constant_override("outline_size", 2)
+	smell_message_label.add_theme_constant_override("outline_size", 0)
 	smell_message_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
 	
 	# Position the label above the particles

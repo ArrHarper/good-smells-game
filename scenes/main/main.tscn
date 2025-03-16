@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://b31no3hoshypl" path="res://assets/images/trashcan.png" id="9_a8run"]
 [ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="9_m3u8n"]
 [ext_resource type="Texture2D" uid="uid://dkgqvkccdjn4q" path="res://assets/images/gymbag.png" id="10_ouso4"]
-[ext_resource type="Script" uid="uid://c4sgqa6wqwmw5" path="res://scripts/isometric_sorter.gd" id="10_sorter"]
+[ext_resource type="Script" path="res://scripts/isometric_sorter.gd" id="10_sorter"]
 [ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="11_scaler"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]

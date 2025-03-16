@@ -2,23 +2,25 @@ extends Node2D
 class_name IsometricSorter
 
 # This class handles automatic Y-sorting for isometric objects
-# Attach this as an autoload or as a child of your main scene
+# Optimized to only update z-index when nodes move
 
 # Register nodes that should be sorted
-var sorted_nodes = []
+var sorted_nodes = {} # Now a dictionary to store node:last_position pairs
 
 func _ready():
-	# Call this every frame to update sorting
+	# We'll process less frequently since we're only checking position changes
 	set_process(true)
+	set_process_priority(100) # Lower priority for z-sorting
 
 func _process(_delta):
-	# Sort all registered nodes by their Y position
-	sort_nodes_by_y()
+	# Only sort nodes when they change position
+	sort_nodes_by_position_change()
 
 # Register a node to be Y-sorted
 func register_node(node: Node2D):
 	if not sorted_nodes.has(node):
-		sorted_nodes.append(node)
+		# Store the node with its current position
+		sorted_nodes[node] = node.global_position
 		
 		# Disconnect signal if it was already connected
 		if node.is_connected("tree_exiting", _on_node_tree_exiting.bind(node)):
@@ -26,6 +28,9 @@ func register_node(node: Node2D):
 			
 		# Connect tree_exiting signal to automatically unregister
 		node.connect("tree_exiting", _on_node_tree_exiting.bind(node))
+		
+		# Set initial z-index
+		update_node_z_index(node)
 
 # Add sorted object - alias for register_node for consistency
 func add_sorted_object(node: Node2D):
@@ -40,26 +45,42 @@ func unregister_node(node: Node2D):
 func _on_node_tree_exiting(node: Node2D):
 	unregister_node(node)
 
-# Sort registered nodes by their Y position
-func sort_nodes_by_y():
-	# Sort nodes by y position (higher y = appears in front)
+# Sort registered nodes but only if they've moved
+func sort_nodes_by_position_change():
+	var nodes_to_remove = []
+	
+	# Check each node for position changes
 	for node in sorted_nodes:
-		if is_instance_valid(node) and node is Node2D:
-			# Skip CharacterBody2D nodes (like the player) as they manage their own z-index
-			if node is CharacterBody2D:
-				# Check for debug mode using safe property access
-				if node.has_method("get") and node.get("debug_mode") != null and node.debug_mode:
-					var tile_pos = IsometricUtils.world_to_tile(node.global_position, 32, 16)
-					print("Character at tile: ", tile_pos, " | World pos: ", node.global_position, " | Z-index: ", node.z_index)
-				continue
-		
-				
-			# In isometric view, z_index is based on Y position for other objects
-			# Objects with higher Y values should appear in front
-			var z_value = int(node.global_position.y)
+		if not is_instance_valid(node):
+			# Add invalid nodes to removal list
+			nodes_to_remove.append(node)
+			continue
 			
-			# Assign the calculated z_index to the node
-			node.z_index = z_value
+		if node is Node2D:
+			# Skip if node hasn't moved
+			if sorted_nodes[node].is_equal_approx(node.global_position):
+				continue
+				
+			# Update stored position and z-index
+			sorted_nodes[node] = node.global_position
+			update_node_z_index(node)
+	
+	# Clean up any invalid nodes
+	for node in nodes_to_remove:
+		sorted_nodes.erase(node)
+
+# Update Z-index for a single node
+func update_node_z_index(node: Node2D):
+	# Skip certain node types that manage their own z-index
+	if node is CharacterBody2D:
+		return
+		
+	# In isometric view, z_index is based on Y position
+	# Objects with higher Y values should appear in front
+	var z_value = int(node.global_position.y)
+	
+	# Assign the calculated z_index to the node
+	node.z_index = z_value
 
 # Helper function to automatically register all children of a node
 func register_children_recursive(parent: Node):
