@@ -108,13 +108,10 @@ func position_smells_isometrically():
 	if debug_mode:
 		print("Found ", smell_nodes.size(), " smell objects to position")
 	
-	# Adjust z-index for each smell based on its isometric position
-	for smell in smell_nodes:
-		# Set proper z-index based on y position
-		smell.z_index = int(smell.position.y)
-		
-		if debug_mode:
-			print("Positioned smell: ", smell.name, " at z-index ", smell.z_index)
+	# No longer setting z-index dynamically. Smells will use their scene-defined z-index values
+	if debug_mode:
+		for smell in smell_nodes:
+			print("Smell: ", smell.name, " with z-index ", smell.z_index)
 
 # Function to initialize the isometric sorting system
 func initialize_isometric_sorting():

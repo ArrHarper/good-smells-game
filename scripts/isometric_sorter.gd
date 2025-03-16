@@ -52,8 +52,9 @@ func sort_nodes_by_y():
 					var tile_pos = IsometricUtils.world_to_tile(node.global_position, 32, 16)
 					print("Character at tile: ", tile_pos, " | World pos: ", node.global_position, " | Z-index: ", node.z_index)
 				continue
+		
 				
-			# In isometric view, z_index is based on Y position for non-player objects
+			# In isometric view, z_index is based on Y position for other objects
 			# Objects with higher Y values should appear in front
 			var z_value = int(node.global_position.y)
 			

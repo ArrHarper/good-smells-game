@@ -116,8 +116,10 @@ func setup_indicator():
 			# Set opacity to 0 initially
 			indicator_node.modulate.a = 0
 			
-			# Set z-index to 10 to ensure visibility
+			# Set fixed z-index of 10 to ensure visibility
 			indicator_node.z_index = 10
+			
+			# Since we're using absolute z-index, we don't want it to be relative
 			indicator_node.z_as_relative = false
 			
 			add_child(indicator_node)

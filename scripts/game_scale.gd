@@ -1,7 +1,7 @@
 extends Node
 
 # Scale factor for game elements
-const SCALE_FACTOR = 3.0
+const SCALE_FACTOR = 2.0
 
 # Nodes that should be excluded from scaling (UI elements)
 var exclude_scaling = ["CanvasLayer", "TitleLabel", "Camera2D"]
@@ -112,11 +112,16 @@ func scale_node_if_needed(node):
 	if "Smell" in node.name:
 		convert_editor_to_runtime_position(node)
 		apply_nearest_neighbor_filter(node)
-	
-	# Scale map objects
-	elif "Map" in node.name:
-		node.scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
+		
+	# Scale MapObjects node and its children
+	elif node.name == "MapObjects":
+		convert_editor_to_runtime_position(node)
 		apply_nearest_neighbor_filter(node)
+		
+		# Only apply texture filtering to children, not additional scaling
+		for child in node.get_children():
+			if child is Sprite2D:
+				apply_nearest_neighbor_filter(child)
 	
 	# Scale player object
 	elif node.name == "nose":

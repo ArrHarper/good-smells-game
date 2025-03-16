@@ -144,3 +144,15 @@ Smell objects feature:
 - Type-based behaviors and point values
 - Detection radius and interaction system
 - Animation for collection effects
+
+## Z-Index Management
+
+The game uses fixed z-index values for proper layering in the isometric perspective:
+
+- IsometricMap: z-index = -1 (always at the bottom)
+- MapObjects: z-index = 5 (fixed value for all objects)
+- Smell objects: z-index = 5 (fixed value for all smells)
+- Player: z-index = 10 (always on top of map and objects)
+- UI elements: Managed by CanvasLayer
+
+Map objects and smells are kept as separate nodes to avoid z-index conflicts.
