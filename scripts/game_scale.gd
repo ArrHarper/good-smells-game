@@ -1,7 +1,7 @@
 extends Node
 
 # This script handles the game scaling and applies it to all relevant nodes
-# Now uses Godot's built-in stretch system with the ScaleHelper for compatibility
+# Now uses Godot's canvas_items stretch system which keeps UI at native resolution
 
 # Tracking variable to prevent double-scaling on restart
 var has_scaled = false
@@ -15,8 +15,7 @@ func _ready():
 	if scale_helper:
 		scale_helper.scale_changed.connect(_on_scale_changed)
 	
-	# Apply pixel-perfect texture filtering to all nodes
-	# Even with stretch mode, we still want to ensure proper filtering
+	# Apply pixel-perfect texture filtering to all game nodes (not UI)
 	apply_pixel_perfect_filter()
 	
 	# Connect to the node added signal to apply filtering to any dynamically created objects
@@ -41,19 +40,28 @@ func apply_pixel_perfect_filter():
 	# Find all TileMapLayer nodes in the entire scene
 	ScaleHelper.find_and_fix_all_tilemaps(get_tree().root)
 	
-	# Apply pixel-perfect filtering to all sprite nodes
+	# Apply pixel-perfect filtering to all sprite nodes (except UI elements)
 	apply_filtering_to_sprites(get_tree().root)
 
 func apply_filtering_to_sprites(node):
+	# Skip UI elements
+	if node is Control:
+		return
+		
 	# Apply nearest neighbor filtering to sprites
 	if node is Sprite2D or node is AnimatedSprite2D:
 		node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	
-	# Recursively apply to all children
+	# Recursively apply to all children (except UI elements)
 	for child in node.get_children():
-		apply_filtering_to_sprites(child)
+		if not (child is Control):
+			apply_filtering_to_sprites(child)
 
 func _on_node_added(node):
+	# Skip UI elements
+	if node is Control:
+		return
+		
 	# Apply pixel-perfect filtering to new nodes
 	if node.has_method("set_texture_filter"):
 		node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

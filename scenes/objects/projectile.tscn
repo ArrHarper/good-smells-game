@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://bncjqiwh53d7l"]
 
-[ext_resource type="Script" path="res://scenes/objects/projectile.gd" id="1_k2yul"]
+[ext_resource type="Script" uid="uid://csc07bbdvo36g" path="res://scenes/objects/projectile.gd" id="1_k2yul"]
 [ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="2_m72dh"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_c13wp"]

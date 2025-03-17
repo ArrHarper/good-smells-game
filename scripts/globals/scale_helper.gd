@@ -4,7 +4,7 @@ extends Node
 const SCALE_FACTOR = 2.0
 
 # Nodes that should be excluded from scaling (UI elements)
-static var exclude_scaling = ["CanvasLayer", "TitleLabel", "Camera2D"]
+static var exclude_scaling = ["CanvasLayer", "TitleLabel", "Camera2D", "Control", "Label", "Button", "RichTextLabel", "TextureButton", "Panel", "VBoxContainer", "HBoxContainer"]
 
 # Signals for scale changes
 signal scale_changed(new_scale)
@@ -18,6 +18,11 @@ func _ready():
 	var settings_scale = ProjectSettings.get_setting("display/window/stretch/scale", 1.0)
 	if settings_scale != SCALE_FACTOR:
 		push_warning("ScaleHelper SCALE_FACTOR (%s) doesn't match project settings stretch scale (%s)" % [SCALE_FACTOR, settings_scale])
+	
+	# Check if we're using canvas_items mode
+	var stretch_mode = ProjectSettings.get_setting("display/window/stretch/mode", "disabled")
+	if stretch_mode == "canvas_items":
+		print("Using canvas_items stretch mode - UI elements will remain at native resolution")
 
 # Get the current scale factor
 static func get_scale_factor() -> float:
@@ -42,12 +47,12 @@ static func scale_size(size: Vector2) -> Vector2:
 
 # Convert an editor position to runtime position
 static func editor_to_runtime(position: Vector2) -> Vector2:
-	# No conversion needed with built-in stretch system - viewport coordinates remain the same
+	# With canvas_items stretch mode, viewport coordinates remain the same
 	return position
 
 # Convert a runtime position back to editor position
 static func runtime_to_editor(position: Vector2) -> Vector2:
-	# No conversion needed with built-in stretch system - viewport coordinates remain the same
+	# With canvas_items stretch mode, viewport coordinates remain the same
 	return position
 
 # Determine if a value has already been scaled
@@ -55,8 +60,7 @@ static func is_scaled(node: Node2D) -> bool:
 	if node == null:
 		return false
 		
-	# With built-in scaling, we don't manually scale nodes anymore
-	# This function is kept for compatibility
+	# With canvas_items scaling, non-UI nodes are scaled automatically
 	return true
 
 # Convert a node's editor position to the correct runtime position
@@ -65,25 +69,19 @@ static func convert_editor_to_runtime_position(node: Node2D) -> void:
 		return
 		
 	# Skip nodes that should be excluded
-	for exclude_name in exclude_scaling:
-		if exclude_name in node.name:
-			return
-	
-	# Check if it's a CanvasLayer or derived from it
-	if node.get_class() == "CanvasLayer" or "CanvasLayer" in node.get_class():
+	if should_exclude_from_scaling(node):
 		return
-			
-	# With the new built-in stretch system, we don't need to manually
-	# scale node positions. This function is kept for compatibility.
-	# 
-	# If you're positioning nodes in the editor, they'll appear at
-	# the same position in the game.
+	
+	# With canvas_items stretch mode, nodes are positioned correctly automatically
 	pass
 
 # Apply nearest neighbor filtering to a node and its children
 static func apply_nearest_neighbor_filter(node) -> void:
-	# With viewport stretch mode, we don't need to manually set texture filtering
-	# However, we'll keep this for compatibility or custom cases
+	# With canvas_items stretch mode, we still need pixel-perfect filtering for game assets
+	# Skip UI elements (Control nodes) as they should remain crisp without nearest neighbor filtering
+	if node is Control:
+		return
+		
 	# Check if this node is a sprite
 	if node is Sprite2D or node is AnimatedSprite2D:
 		node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -96,9 +94,10 @@ static func apply_nearest_neighbor_filter(node) -> void:
 	if "TileMapLayer" in node.get_class() or "TileMap" in node.name or "FloorMap" in node.name:
 		node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	
-	# Recursively apply to all children
+	# Recursively apply to all children (except UI elements)
 	for child in node.get_children():
-		apply_nearest_neighbor_filter(child)
+		if not (child is Control):
+			apply_nearest_neighbor_filter(child)
 
 # Adjust a sprite's animation values for correct scaling
 static func adjust_sprite_animation(sprite: Sprite2D) -> void:
@@ -134,11 +133,11 @@ static func should_exclude_from_scaling(node: Node) -> bool:
 		
 	# Check against exclude list
 	for exclude_name in exclude_scaling:
-		if exclude_name in node.name:
+		if exclude_name in node.name or node.get_class() == exclude_name or exclude_name in node.get_class():
 			return true
 			
 	# Check if it's a CanvasLayer
-	if node is CanvasLayer or node.get_class() == "CanvasLayer" or "CanvasLayer" in node.get_class():
+	if node is CanvasLayer or node is Control:
 		return true
 			
 	return false

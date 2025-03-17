@@ -17,7 +17,17 @@ func _on_body_entered(body):
 		# Ignore collision with the player who fired it
 		return
 		
-	# Handle collision with other objects
+	# Handle wall collisions - these should bounce the projectile
+	if body.has_method("handle_projectile_collision"):
+		body.handle_projectile_collision(self)
+		
+		# If it's a breakable, we continue moving (no return)
+		# If it's a wall, we want to bounce but NOT destroy the projectile (handled in wall.gd)
+		if body.get_script().get_path().find("wall.gd") != -1:
+			return
+	
+	# If it's not a special object with collision handling or it's a breakable,
+	# destroy the projectile
 	queue_free()
 
 func _on_timer_timeout():
