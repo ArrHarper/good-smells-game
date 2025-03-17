@@ -1,11 +1,6 @@
 @tool
 extends Node2D
 
-# Isometric grid constants (match with testing.gd)
-const TILE_WIDTH = 32
-const TILE_HEIGHT = 16
-const GRID_SIZE = 21 # Matching the MAX_TILE values in testing.gd
-
 # Grid drawing properties
 var grid_color = Color(0.3, 0.7, 1.0, 0.7) # Increased alpha for better visibility
 var grid_thickness = 1.0
@@ -28,16 +23,21 @@ func _draw():
 	draw_isometric_grid()
 
 func draw_isometric_grid():
-	# Draw horizontal grid lines - from 0 to GRID_SIZE to avoid doubling
-	for y in range(0, GRID_SIZE + 1):
-		var start = Vector2(-y * TILE_WIDTH / 2, y * TILE_HEIGHT / 2) + grid_offset
-		var end = Vector2((GRID_SIZE - y) * TILE_WIDTH / 2, (GRID_SIZE + y) * TILE_HEIGHT / 2) + grid_offset
+	# Get centralized values
+	var tile_width = ProjectSettings.get_setting("game_settings/tile/width", 32)
+	var tile_height = ProjectSettings.get_setting("game_settings/tile/height", 16)
+	var grid_size = ProjectSettings.get_setting("game_settings/grid/size_x", 21)
+	
+	# Draw horizontal grid lines - from 0 to grid_size to avoid doubling
+	for y in range(0, grid_size + 1):
+		var start = Vector2(-y * tile_width / 2, y * tile_height / 2) + grid_offset
+		var end = Vector2((grid_size - y) * tile_width / 2, (grid_size + y) * tile_height / 2) + grid_offset
 		draw_line(start, end, grid_color, grid_thickness)
 	
-	# Draw vertical grid lines - from 0 to GRID_SIZE to avoid doubling
-	for x in range(0, GRID_SIZE + 1):
-		var start = Vector2(x * TILE_WIDTH / 2, x * TILE_HEIGHT / 2) + grid_offset
-		var end = Vector2((x - GRID_SIZE) * TILE_WIDTH / 2, (x + GRID_SIZE) * TILE_HEIGHT / 2) + grid_offset
+	# Draw vertical grid lines - from 0 to grid_size to avoid doubling
+	for x in range(0, grid_size + 1):
+		var start = Vector2(x * tile_width / 2, x * tile_height / 2) + grid_offset
+		var end = Vector2((x - grid_size) * tile_width / 2, (x + grid_size) * tile_height / 2) + grid_offset
 		draw_line(start, end, grid_color, grid_thickness)
 
 # Toggle grid visibility

@@ -10,8 +10,8 @@
 [ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="9_m3u8n"]
 [ext_resource type="Texture2D" uid="uid://dkgqvkccdjn4q" path="res://assets/images/gymbag.png" id="10_ouso4"]
 [ext_resource type="Texture2D" uid="uid://bxucoxsvw7plu" path="res://assets/images/hotdogpicnictable.png" id="11_ouso4"]
-[ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="11_scaler"]
 [ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="12_blune"]
+[ext_resource type="Texture2D" uid="uid://b71706blkcw42" path="res://assets/images/arrowKeys2x.png" id="12_th5th"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]
 font = ExtResource("3_6q06x")
@@ -24,9 +24,6 @@ shadow_offset = Vector2(3, 6)
 [node name="Main" type="Node2D"]
 y_sort_enabled = true
 script = ExtResource("1_0wfyh")
-
-[node name="GameScaler" type="Node" parent="."]
-script = ExtResource("11_scaler")
 
 [node name="IsometricMap" parent="." instance=ExtResource("6_ismap")]
 z_index = -1
@@ -71,7 +68,6 @@ position = Vector2(-102, -26)
 z_index = 5
 position = Vector2(-67, -26)
 smell_name = "Flowers"
-smell_type = "good"
 smell_message = "Mmm, fresh flowers!"
 points = 25
 particles_color = Color(1, 0, 0.301961, 1)
@@ -106,7 +102,7 @@ particles_color = Color(0, 1, 0.8, 1)
 
 [node name="CommonCollectible" parent="." instance=ExtResource("5_collect")]
 z_index = 5
-position = Vector2(50, 40)
+position = Vector2(-48, 55)
 collectible_name = "Coin"
 collectible_message = "You found a coin!"
 points = 10
@@ -138,3 +134,8 @@ texture = ExtResource("11_ouso4")
 texture_filter = 1
 position = Vector2(-48, 54)
 texture = ExtResource("12_blune")
+
+[node name="Sprite2D3" type="Sprite2D" parent="MapObjects"]
+z_index = 5
+position = Vector2(225, 138)
+texture = ExtResource("12_th5th")

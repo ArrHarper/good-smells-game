@@ -4,16 +4,23 @@ class_name IsometricUtils
 # Utility static class for handling isometric calculations
 # This is a singleton that can be loaded as an autoload in project settings
 
-# Default tile dimensions - these should match the actual tile size used in the game
-const DEFAULT_TILE_WIDTH = 32
-const DEFAULT_TILE_HEIGHT = 16
+# Get the tile dimensions from project settings
+static func get_tile_width() -> int:
+	return ProjectSettings.get_setting("game_settings/tile/width", 32)
+
+static func get_tile_height() -> int:
+	return ProjectSettings.get_setting("game_settings/tile/height", 16)
 
 # Get the appropriate scaled tile dimensions
 static func get_scaled_tile_width() -> float:
-	return DEFAULT_TILE_WIDTH * ScaleHelper.get_scale_factor()
+	return get_tile_width() * get_scale_factor()
 
 static func get_scaled_tile_height() -> float:
-	return DEFAULT_TILE_HEIGHT * ScaleHelper.get_scale_factor()
+	return get_tile_height() * get_scale_factor()
+
+# Get the scale factor from project settings
+static func get_scale_factor() -> float:
+	return ProjectSettings.get_setting("game_settings/display/scale_factor", 2.0)
 
 # Convert world position to isometric tile coordinates
 static func world_to_tile(world_pos: Vector2, tile_width: float = -1, tile_height: float = -1) -> Vector2i:

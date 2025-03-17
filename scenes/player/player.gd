@@ -1,23 +1,51 @@
 extends CharacterBody2D
 class_name Player
 
+# Constants
+const DEFAULT_SMELL_RADIUS = 32 # Base size for smell detection
+
 # Movement constants
 const MOVE_SPEED = 300
-# Isometric tile dimensions - these will use the scaled values at runtime
-const TILE_WIDTH = 32
-const TILE_HEIGHT = 16
 
 # Player movement properties
-var base_speed = 150
-var current_speed = base_speed
-var is_moving = false
+var speed = 150 * Iso.get_scale_factor()
+var current_direction = Vector2.ZERO
+var moving = false
 
-# Reference to the game scale singleton for scaling values
-var game_scale
+# For floating animation
+var float_timer = 0.0
+var float_direction = 1.0
+var float_height = 3 * Iso.get_scale_factor() # Vertical float distance
+var float_speed = 1.5 # Speed of the float
+
+# For wiggle animation
+var wiggle_timer = 0.0
+var wiggle_width = 4 * Iso.get_scale_factor() # Horizontal wiggle distance
+var wiggle_speed = 3.0 # Speed of the wiggle
+var wiggle_intensity = 2.5 * Iso.get_scale_factor() # How intense the wiggle is
+
+# For sniffing/smelling
+var is_smelling = false
+var smell_cooldown_timer = 0.0
+var smell_cooldown = 1.0 # Seconds to wait between smells
+var original_y = 0.0
+var smell_action_timer = 0
+var smell_action_duration = 1.0 # Duration of the smell action in seconds
+
+# Debug mode for extra logging
+var debug_mode = false
+
+# For shooting boost
+var can_shoot = true
+var shoot_cooldown = 0.5
+
+# For floating animation
+var base_position_y = 0
+
+# List of active particles
+var active_particles = []
 
 # Smell detection
-var is_smelling = false
-var smell_duration = 2.0 # Duration of the smell action in seconds
 var pending_smells = [] # List of smell objects to process
 signal smell_detected(smell_text, smell_type) # Signal when a smell is detected
 
@@ -26,8 +54,6 @@ var pending_collectibles = [] # List of collectible objects to process
 
 # Shooting properties
 var projectile_scene = preload("res://scenes/objects/projectile.tscn")
-var can_shoot = true
-var shoot_cooldown = 0.2 # Time in seconds between shots
 
 # Particle system properties
 var smell_particles = null
@@ -38,35 +64,25 @@ var smell_message_label = null # Label to display smell message above player's h
 # Animation properties
 var floating_time = 0
 var wiggle_time = 0
-var float_speed = 1.5
-var float_height = 3
-var wiggle_speed = 12
-var wiggle_width = 4
 var idle_time = 0
 var move_time = 0
-var original_y = 0
-var base_position_y = 0 # Store the base Y position without animation offset
 var facing_right = true
 var smell_timer = 0
 var float_animation_active = true # Control whether player sprite floats
-var wiggle_intensity = 2.5 # How intense the wiggle is
 
 # Debug
-@export var debug_mode = false # Set to true to show detailed logs
 var last_reported_tile_pos = Vector2i(-999, -999)
 var position_report_timer = 0
 var position_report_interval = 0.5 # Report position at most every half second
 
+# For tracking closest smells
+var closest_smell = null
+var closest_distance = 999999
+var closest_smell_strength = 0
+
 # Called when the node enters the scene tree for the first time
 func _ready():
-	# Get reference to the game scale singleton if available
-	if Engine.has_singleton("GameScale"):
-		game_scale = Engine.get_singleton("GameScale")
-		
-		# Connect to scale changed signal if available
-		if game_scale.has_signal("scale_changed"):
-			game_scale.connect("scale_changed", _on_scale_changed)
-			
+	# References to game_scale singleton removed
 	original_y = position.y
 	base_position_y = position.y # Initialize base position
 	
@@ -113,20 +129,8 @@ func setup_shoot_cooldown_timer():
 func _on_shoot_cooldown_timeout():
 	can_shoot = true
 
-# Handler for scale changes
-func _on_scale_changed(new_scale):
-	# Update any values that need to be adjusted when scale changes
-	if debug_mode:
-		print("Scale changed to: ", new_scale)
-		
-	# Recalculate any scaled values
-	update_scaled_values()
-
 # Update scaled values based on current scale
 func update_scaled_values():
-	if not game_scale:
-		return
-		
 	# Get scaled size for smell detector
 	if has_node("SmellDetector"):
 		var smell_detector = $SmellDetector
@@ -134,12 +138,12 @@ func update_scaled_values():
 			var collision_shape = smell_detector.get_child(0)
 			if collision_shape is CollisionShape2D and collision_shape.shape is CircleShape2D:
 				# Base radius is 32, multiply by scale
-				collision_shape.shape.radius = 32 * game_scale.SCALE_FACTOR
+				collision_shape.shape.radius = 32 * Iso.get_scale_factor()
 	
 	# Update any other scale-dependent values
-	float_height = 3 * game_scale.SCALE_FACTOR
-	wiggle_width = 4 * game_scale.SCALE_FACTOR
-	wiggle_intensity = 2.5 * game_scale.SCALE_FACTOR
+	float_height = 3 * Iso.get_scale_factor()
+	wiggle_width = 4 * Iso.get_scale_factor()
+	wiggle_intensity = 2.5 * Iso.get_scale_factor()
 
 # Tracks which smells were in range last time we checked
 var previous_smells_in_range = []
@@ -207,7 +211,7 @@ func _on_range_check_timer_timeout():
 func setup_smell_timer():
 	var timer = Timer.new()
 	timer.name = "SmellTimer"
-	timer.wait_time = smell_duration
+	timer.wait_time = smell_cooldown
 	timer.one_shot = true
 	timer.connect("timeout", _on_smell_timer_timeout)
 	add_child(timer)
@@ -224,8 +228,8 @@ func setup_smell_detector():
 		
 		# Base radius is 32, apply scale if available
 		var radius = 32.0
-		if game_scale:
-			radius *= game_scale.SCALE_FACTOR
+		if Iso.get_scale_factor() != 1.0:
+			radius *= Iso.get_scale_factor()
 			
 		shape.radius = radius
 		collision_shape.shape = shape
@@ -268,8 +272,8 @@ func setup_smell_particles():
 		# Position the particles slightly above the character's head
 		# Scale this offset if game scale is available
 		var y_offset = -20.0
-		if game_scale:
-			y_offset *= game_scale.SCALE_FACTOR
+		if Iso.get_scale_factor() != 1.0:
+			y_offset *= Iso.get_scale_factor()
 			
 		particles.position = Vector2(0, y_offset)
 		
@@ -402,7 +406,7 @@ func start_smelling():
 	if has_node("SmellTimer"):
 		$SmellTimer.start()
 		if debug_mode:
-			print("Started smell timer for " + str(smell_duration) + " seconds")
+			print("Started smell timer for " + str(smell_cooldown) + " seconds")
 	
 	# Find smells and collectibles nearby but don't process them yet
 	find_pending_smells()
@@ -692,8 +696,8 @@ func display_smell_message(text, type):
 	
 	# Position the label above the particles
 	var y_offset = -40.0
-	if game_scale:
-		y_offset *= game_scale.SCALE_FACTOR
+	if Iso.get_scale_factor() != 1.0:
+		y_offset *= Iso.get_scale_factor()
 	
 	smell_message_label.position = Vector2(-50, y_offset)
 	smell_message_label.size = Vector2(100, 30)

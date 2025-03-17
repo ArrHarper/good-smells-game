@@ -1,18 +1,16 @@
-[gd_scene load_steps=12 format=3 uid="uid://cn7nud31j7rd8"]
+[gd_scene load_steps=10 format=3 uid="uid://cpr3y7pimpd5i"]
 
-[ext_resource type="Script" uid="uid://bkaoxjsh3sgu2" path="res://scenes/main/testing.gd" id="1_hqw5y"]
-[ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="2_2upy3"]
-[ext_resource type="PackedScene" uid="uid://imdjiojyjkr7" path="res://scenes/main/flatmap.tscn" id="3_2hwg8"]
-[ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="4_u4j0e"]
-[ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="5_xgegi"]
-[ext_resource type="PackedScene" uid="uid://b0dw3hyhtyow2" path="res://scenes/player/player.tscn" id="6_a6d3d"]
-[ext_resource type="PackedScene" uid="uid://dbw0qdadjukii" path="res://scenes/smells/smell.tscn" id="7_cwgn8"]
-[ext_resource type="PackedScene" uid="uid://dj02ug1o3ysit" path="res://scenes/collectibles/collectible.tscn" id="8_37e5t"]
-[ext_resource type="Texture2D" uid="uid://bxucoxsvw7plu" path="res://assets/images/hotdogpicnictable.png" id="9_m1uoy"]
-[ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="10_oplav"]
+[ext_resource type="Script" uid="uid://bk8vida38wlka" path="res://scenes/main/testing2.gd" id="1_3srsp"]
+[ext_resource type="PackedScene" uid="uid://imdjiojyjkr7" path="res://scenes/main/flatmap.tscn" id="2_6i1av"]
+[ext_resource type="Script" uid="uid://dhvt5qh8kl8gk" path="res://scenes/main/isometric_grid.gd" id="3_hqw5y"]
+[ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="4_2upy3"]
+[ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="5_2hwg8"]
+[ext_resource type="PackedScene" uid="uid://b0dw3hyhtyow2" path="res://scenes/player/player.tscn" id="6_u4j0e"]
+[ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="7_xgegi"]
+[ext_resource type="Texture2D" uid="uid://b71706blkcw42" path="res://assets/images/arrowKeys2x.png" id="8_a6d3d"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]
-font = ExtResource("4_u4j0e")
+font = ExtResource("4_2upy3")
 font_size = 28
 font_color = Color(1, 0.301961, 0.301961, 1)
 shadow_size = 9
@@ -21,13 +19,17 @@ shadow_offset = Vector2(3, 6)
 
 [node name="Testing" type="Node2D"]
 y_sort_enabled = true
-script = ExtResource("1_hqw5y")
+script = ExtResource("1_3srsp")
 
-[node name="GameScaler" type="Node" parent="."]
-script = ExtResource("2_2upy3")
-
-[node name="IsometricMap" parent="." instance=ExtResource("3_2hwg8")]
+[node name="IsometricMap" parent="." instance=ExtResource("2_6i1av")]
 z_index = -1
+scale = Vector2(0.994219, 1)
+metadata/_edit_lock_ = true
+
+[node name="IsometricGrid" type="Node2D" parent="."]
+z_index = 2
+position = Vector2(0, -168)
+script = ExtResource("3_hqw5y")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -45,48 +47,37 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 18
-text = "TESTING MODE (Alt+T)"
+text = "even MORE experimental"
 horizontal_alignment = 2
+
+[node name="GridToggleButton" type="Button" parent="CanvasLayer"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 90.0
+offset_bottom = 40.0
+focus_mode = 0
+theme_override_colors/font_hover_color = Color(0.5, 0.8, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_colors/font_color = Color(0.3, 0.7, 1, 1)
+theme_override_colors/font_focus_color = Color(0.3, 0.7, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.8, 0.9, 1, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 16
+text = "Grid: ON"
 
 [node name="TitleLabel" type="Label" parent="."]
 offset_left = -184.0
 offset_top = -275.0
 offset_right = 184.0
 offset_bottom = -182.0
-text = "TESTING SCENE"
+text = "TESTING SCENE 2"
 label_settings = SubResource("LabelSettings_ow5a4")
 horizontal_alignment = 1
-script = ExtResource("5_xgegi")
+script = ExtResource("5_2hwg8")
 
-[node name="nose" parent="." instance=ExtResource("6_a6d3d")]
+[node name="nose" parent="." instance=ExtResource("6_u4j0e")]
 z_index = 10
 position = Vector2(-102, -26)
-
-[node name="GoodSmell1" parent="." instance=ExtResource("7_cwgn8")]
-z_index = 5
-position = Vector2(-67, -26)
-smell_name = "Flowers"
-smell_type = "good"
-smell_message = "Mmm, fresh flowers!"
-points = 25
-particles_color = Color(1, 0, 0.301961, 1)
-
-[node name="EpicSmell1" parent="." instance=ExtResource("7_cwgn8")]
-z_index = 5
-position = Vector2(145, 7)
-smell_name = "Chocolate"
-smell_type = "epic"
-smell_message = "Delicious chocolate!"
-points = 25
-particles_color = Color(0, 1, 0.8, 1)
-
-[node name="CommonCollectible" parent="." instance=ExtResource("8_37e5t")]
-z_index = 5
-position = Vector2(50, 40)
-collectible_name = "Coin"
-collectible_message = "You found a coin!"
-points = 10
-particles_color = Color(1, 0.85, 0, 1)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
@@ -94,11 +85,13 @@ particles_color = Color(1, 0.85, 0, 1)
 z_index = 5
 y_sort_enabled = true
 
-[node name="Sprite2D" type="Sprite2D" parent="MapObjects"]
-position = Vector2(-68, -24)
-scale = Vector2(1.79688, 1.60938)
-texture = ExtResource("9_m1uoy")
+[node name="GrassSprite" type="Sprite2D" parent="MapObjects"]
+position = Vector2(64, -18)
+texture = ExtResource("7_xgegi")
 
-[node name="Sprite2D2" type="Sprite2D" parent="MapObjects"]
-position = Vector2(-48, 54)
-texture = ExtResource("10_oplav")
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+z_index = 5
+position = Vector2(225, 138)
+texture = ExtResource("8_a6d3d")
+
+[connection signal="pressed" from="CanvasLayer/GridToggleButton" to="." method="_on_grid_toggle_button_pressed"]

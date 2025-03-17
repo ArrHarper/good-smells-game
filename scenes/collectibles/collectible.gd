@@ -9,9 +9,6 @@ class_name Collectible
 @export var collected: bool = false
 @export var detected: bool = false
 
-# Reference to the game scale singleton
-var game_scale
-
 # Visual representation variables
 @export var particles_color: Color = Color("#CCCCCCE5") # Default color that can be overridden in editor
 signal animation_completed(collectible_data) # Signal to notify when animation is done
@@ -31,27 +28,16 @@ var animation_duration = 1.6 # Total animation time in seconds
 var message_delay = 0.8 # Time to wait before showing the message
 
 func _ready():
-	# Get reference to the game scale singleton if available
-	if Engine.has_singleton("GameScale"):
-		game_scale = Engine.get_singleton("GameScale")
-		
-		# Connect to scale changed signal if available
-		if game_scale.has_signal("scale_changed"):
-			game_scale.connect("scale_changed", _on_scale_changed)
-	
-	# Add to collectible group so player can detect it
+	# Add to collectible group
 	add_to_group("collectible")
 	
-	# Set up collision shape
+	# Set up collision shape if it doesn't exist
 	if not get_node_or_null("CollisionShape2D"):
 		var collision = CollisionShape2D.new()
 		var shape = CircleShape2D.new()
 		
 		# Apply scale to the collision radius
 		var radius = 16.0
-		if game_scale:
-			radius *= game_scale.SCALE_FACTOR
-			
 		shape.radius = radius
 		collision.shape = shape
 		add_child(collision)
@@ -63,30 +49,27 @@ func _ready():
 	setup_indicator()
 	
 	# Debug
-	print("Collectible initialized: " + collectible_name + " (type: " + collectible_type + ")")
-
-# Handler for scale changes
-func _on_scale_changed(new_scale):
-	# Update any values that need to be adjusted when scale changes
-	update_scaled_values()
+	if Engine.is_editor_hint():
+		# Force visibility in editor for easier placement
+		modulate.a = 0.7
+		
+	# Schedule animations for after positioning
+	call_deferred("setup_animations")
 
 # Update values based on the current scale factor
 func update_scaled_values():
-	if not game_scale:
-		return
-		
 	# Update collision shape if it exists
 	if has_node("CollisionShape2D"):
 		var collision = $CollisionShape2D
 		if collision.shape is CircleShape2D:
-			collision.shape.radius = 16.0 * game_scale.SCALE_FACTOR
+			collision.shape.radius = 16.0 * Iso.get_scale_factor()
 			
-	# Update indicator scale
+	# Update indicator scale without applying scale factor again
 	if indicator_node:
 		if is_closest:
-			indicator_node.scale = Vector2(0.5, 0.5) * game_scale.SCALE_FACTOR
+			indicator_node.scale = Vector2(0.5, 0.5)
 		else:
-			indicator_node.scale = Vector2(0.4, 0.4) * game_scale.SCALE_FACTOR
+			indicator_node.scale = Vector2(0.4, 0.4)
 
 # Set up the visual indicator
 func setup_indicator():
@@ -100,11 +83,8 @@ func setup_indicator():
 		if texture:
 			indicator_node.texture = texture
 			
-			# Scale the indicator - apply game scale if available
+			# Scale the indicator without applying scale factor
 			var scale_base = 0.4
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
-				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 			
 			# Set the color based on collectible type
@@ -142,6 +122,7 @@ func in_range(is_closest_collectible):
 		# Stop any existing animations
 		if pulse_tween and pulse_tween.is_valid():
 			pulse_tween.kill()
+			pulse_tween = null
 		
 		# Create a new animation
 		var fade_tween = create_tween()
@@ -150,11 +131,8 @@ func in_range(is_closest_collectible):
 		if is_closest_collectible:
 			indicator_node.modulate = get_collectible_color()
 			
-			# Larger size for the closest collectible - apply game scale
+			# Larger size for the closest collectible
 			var scale_base = 0.5
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
-				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 			fade_tween.tween_property(indicator_node, "modulate:a", 0.9, 0.3)
 			
@@ -162,24 +140,18 @@ func in_range(is_closest_collectible):
 			pulse_tween = create_tween()
 			pulse_tween.set_loops()
 			
-			# Scale the pulse effect based on the game scale
+			# Scale the pulse effect without applying scale factor again
 			var pulse_scale_max = 0.6
 			var pulse_scale_min = 0.5
-			if game_scale:
-				pulse_scale_max *= game_scale.SCALE_FACTOR
-				pulse_scale_min *= game_scale.SCALE_FACTOR
-				
+			
 			pulse_tween.tween_property(indicator_node, "scale", Vector2(pulse_scale_max, pulse_scale_max), 0.5)
 			pulse_tween.tween_property(indicator_node, "scale", Vector2(pulse_scale_min, pulse_scale_min), 0.5)
 		else:
 			# Less prominent for collectibles that aren't the closest
 			indicator_node.modulate = get_collectible_color().lightened(0.3)
 			
-			# Apply game scale to the indicator size
+			# Apply size without game scale
 			var scale_base = 0.3
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
-				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 			fade_tween.tween_property(indicator_node, "modulate:a", 0.6, 0.3)
 
@@ -199,11 +171,8 @@ func out_of_range():
 		var tween = create_tween()
 		tween.tween_property(indicator_node, "modulate:a", 0, 0.3)
 		tween.tween_callback(func():
-			# Reset scale when hidden - apply game scale
+			# Reset scale when hidden
 			var scale_base = 0.4
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
-				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 		)
 
@@ -212,11 +181,7 @@ func _process(delta):
 	# Have the indicator gently float to add some visual interest
 	if indicator_node and is_in_range and indicator_node.modulate.a > 0:
 		# Keep the indicator at the collectible's center but add a gentle floating effect
-		# Scale the float amount based on game scale
 		var float_amount = 3.0
-		if game_scale:
-			float_amount *= game_scale.SCALE_FACTOR
-			
 		indicator_node.position.y = sin(Time.get_ticks_msec() * 0.001 * 2) * float_amount
 
 # Public methods for the collectible object
@@ -316,3 +281,21 @@ func reset():
 	if indicator_node:
 		indicator_node.modulate.a = 0
 		indicator_node.visible = true
+		
+# Sets up animations for the collectible object
+func setup_animations():
+	# Start the idle animation if not already playing
+	start_idle_animation()
+
+# Start a subtle idle animation for the collectible
+func start_idle_animation():
+	# Set initial scale
+	var scale_base = Vector2(1, 1)
+	if Iso.get_scale_factor():
+		scale_base *= Iso.get_scale_factor()
+	scale = scale_base
+	
+	# Start the breathing animation
+	var tween = create_tween().set_loops()
+	tween.tween_property(self, "scale", Vector2(1.05, 1.05) * scale_base, 1.0)
+	tween.tween_property(self, "scale", scale_base, 1.0)

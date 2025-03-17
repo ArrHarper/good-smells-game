@@ -4,30 +4,29 @@ extends Node2D
 var ui_scene = preload("res://scenes/UI/UI.tscn")
 var ui_instance
 
-# Isometric map constants - match these with the player script
-const TILE_WIDTH = 32
-const TILE_HEIGHT = 16
+# Map boundaries - min values hardcoded, max values from project settings
 const MIN_TILE_X = 0
-const MAX_TILE_X = 21
 const MIN_TILE_Y = 0
-const MAX_TILE_Y = 21
 
 # Debug mode - set to true for testing scene
 @export var debug_mode = true
 
+# Reference to the isometric grid
+var isometric_grid
+
 func _ready():
 	# Set window title to indicate testing mode
-	DisplayServer.window_set_title("Good Smells - TESTING MODE")
-	
-	# Configure TileSet error handling
-	if Engine.has_singleton("ErrorHandler"):
-		var error_handler = Engine.get_singleton("ErrorHandler")
-		error_handler.register_tilemaps(self)
-		error_handler.suppress_tileset_errors()
+	DisplayServer.window_set_title("Good Smells - TESTING 2")
 	
 	# Create UI instance
 	ui_instance = ui_scene.instantiate()
 	add_child(ui_instance)
+	
+	# Get reference to isometric grid
+	isometric_grid = $IsometricGrid
+	
+	# Set initial button text based on grid visibility
+	update_grid_button_text()
 	
 	# Connect to smell animation completed signals
 	connect_smell_signals()
@@ -42,16 +41,17 @@ func _ready():
 		print("TESTING scene ready with isometric map")
 		print("Map boundaries: ", get_map_boundaries())
 		print("Available smell objects:", count_smell_objects())
+		print("Press G to toggle the isometric grid visibility")
 
 # Setup additional testing environment features
 func setup_testing_environment():
 	# Add testing label to indicate this is a testing scene
 	if has_node("TitleLabel"):
-		$TitleLabel.text = "TESTING SCENE"
+		$TitleLabel.text = "TESTING SCENE 2"
 		$TitleLabel.modulate = Color(1, 0.5, 0.5, 1) # Reddish tint for testing
 	
 	# Log message to help differentiate from main scene in console
-	print("=== TESTING SCENE INITIALIZED ===")
+	print("=== TESTING SCENE 2 INITIALIZED ===")
 	print("This is a testing environment for game mechanics.")
 	print("Any changes made here won't affect the main game.")
 
@@ -208,7 +208,11 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 				error_handler.filter_message("Checking floor tiles")
 			
 			# Convert world position to tile coordinates
-			var tile_pos = IsometricUtils.world_to_tile(world_pos, TILE_WIDTH, TILE_HEIGHT)
+			var tile_pos = IsometricUtils.world_to_tile(world_pos)
+			
+			# Validate within map boundaries
+			tile_pos.x = clampi(tile_pos.x, MIN_TILE_X, ProjectSettings.get_setting("game_settings/grid/size_x", 21))
+			tile_pos.y = clampi(tile_pos.y, MIN_TILE_Y, ProjectSettings.get_setting("game_settings/grid/size_y", 21))
 			
 			if debug_mode:
 				print("Checking for floor tile at: ", tile_pos, " (from world pos: ", world_pos, ")")
@@ -243,8 +247,36 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 	
 	return Vector2i(-1, -1) # Return invalid coordinates if no tile found
 
-# Handle input for scene switching
+# Handle input for scene switching and grid toggling
 func _input(event):
+	# Scene switching
 	if event.is_action_pressed("switch_scene"):
-		print("Switching to main scene")
-		get_node("/root/SceneSwitcher").switch_to_main()
+		print("Cycling through scenes")
+		get_node("/root/SceneSwitcher").cycle_scenes()
+	
+	# Toggle isometric grid visibility with the G key
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_G:
+			isometric_grid.toggle_grid()
+			update_grid_button_text()
+
+# Called when the grid toggle button is pressed
+func _on_grid_toggle_button_pressed():
+	isometric_grid.toggle_grid()
+	update_grid_button_text()
+
+# Updates the grid button text to match the current grid visibility state
+func update_grid_button_text():
+	var button = $CanvasLayer/GridToggleButton
+	if button:
+		button.text = "Grid: " + ("ON" if isometric_grid.show_grid else "OFF")
+
+func get_tile_pos_from_world(world_pos: Vector2) -> Vector2i:
+	# Use the IsometricUtils singleton to handle the conversion with centralized values
+	var tile_pos = IsometricUtils.world_to_tile(world_pos)
+	
+	# Validate within map boundaries
+	tile_pos.x = clampi(tile_pos.x, MIN_TILE_X, ProjectSettings.get_setting("game_settings/grid/size_x", 21))
+	tile_pos.y = clampi(tile_pos.y, MIN_TILE_Y, ProjectSettings.get_setting("game_settings/grid/size_y", 21))
+	
+	return tile_pos

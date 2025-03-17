@@ -1,16 +1,16 @@
 extends Area2D
 class_name Smell
 
+# Constants
+const SCALE_FACTOR = 2.0 # Hardcoded scale factor (previously from ScaleHelper)
+
 # Smell properties
 @export var smell_name: String = "Generic Smell"
-@export_enum("good", "bad", "epic", "neutral") var smell_type: String = "neutral"
+@export_enum("good", "bad", "epic", "neutral") var smell_type: String = "good"
 @export var smell_message: String = "You smell something..."
 @export var points: int = 0
 @export var collected: bool = false
 @export var detected: bool = false
-
-# Reference to the game scale singleton
-var game_scale
 
 # Visual representation variables
 @export var particles_color: Color = Color("#CCCCCCE5") # Default color that can be overridden in editor
@@ -31,62 +31,42 @@ var animation_duration = 1.6 # Total animation time in seconds
 var message_delay = 0.8 # Time to wait before showing the message
 
 func _ready():
-	# Get reference to the game scale singleton if available
-	if Engine.has_singleton("GameScale"):
-		game_scale = Engine.get_singleton("GameScale")
-		
-		# Connect to scale changed signal if available
-		if game_scale.has_signal("scale_changed"):
-			game_scale.connect("scale_changed", _on_scale_changed)
-	
 	# Add to smell group so player can detect it
 	add_to_group("smell")
 	
-	# Set up collision shape
-	if not get_node_or_null("CollisionShape2D"):
-		var collision = CollisionShape2D.new()
-		var shape = CircleShape2D.new()
-		
-		# Apply scale to the collision radius
-		var radius = 16.0
-		if game_scale:
-			radius *= game_scale.SCALE_FACTOR
-			
-		shape.radius = radius
-		collision.shape = shape
-		add_child(collision)
+	# Setup collision
+	var collision = $CollisionShape2D
+	if collision and collision.shape is CircleShape2D:
+		# Set standard collision radius scaled by the global scale factor
+		var radius = 16.0 * Iso.get_scale_factor()
+		collision.shape.radius = radius
 	
 	# Connect signal
 	connect("body_entered", _on_body_entered)
 	
-	# Create visual indicator (hidden by default)
+	# Setup indicator based on smell type
 	setup_indicator()
+	
+	# Initialize animations after a short delay (to allow positioning)
+	call_deferred("setup_animations")
 	
 	# Debug
 	print("Smell initialized: " + smell_name + " (type: " + smell_type + ")")
 
-# Handler for scale changes
-func _on_scale_changed(new_scale):
-	# Update any values that need to be adjusted when scale changes
-	update_scaled_values()
-
 # Update values based on the current scale factor
 func update_scaled_values():
-	if not game_scale:
-		return
-		
 	# Update collision shape if it exists
 	if has_node("CollisionShape2D"):
 		var collision = $CollisionShape2D
 		if collision.shape is CircleShape2D:
-			collision.shape.radius = 16.0 * game_scale.SCALE_FACTOR
+			collision.shape.radius = 16.0 * Iso.get_scale_factor()
 			
 	# Update indicator scale
 	if indicator_node:
 		if is_closest:
-			indicator_node.scale = Vector2(0.5, 0.5) * game_scale.SCALE_FACTOR
+			indicator_node.scale = Vector2(0.5, 0.5) * Iso.get_scale_factor()
 		else:
-			indicator_node.scale = Vector2(0.4, 0.4) * game_scale.SCALE_FACTOR
+			indicator_node.scale = Vector2(0.4, 0.4) * Iso.get_scale_factor()
 
 # Set up the visual indicator
 func setup_indicator():
@@ -102,8 +82,8 @@ func setup_indicator():
 			
 			# Scale the indicator - apply game scale if available
 			var scale_base = 0.4
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
+			if Iso.get_scale_factor():
+				scale_base *= Iso.get_scale_factor()
 				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 			
@@ -152,8 +132,8 @@ func in_range(is_closest_smell):
 			
 			# Larger size for the closest smell - apply game scale
 			var scale_base = 0.5
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
+			if Iso.get_scale_factor():
+				scale_base *= Iso.get_scale_factor()
 				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 			fade_tween.tween_property(indicator_node, "modulate:a", 0.9, 0.3)
@@ -165,9 +145,9 @@ func in_range(is_closest_smell):
 			# Scale the pulse effect based on the game scale
 			var pulse_scale_max = 0.6
 			var pulse_scale_min = 0.5
-			if game_scale:
-				pulse_scale_max *= game_scale.SCALE_FACTOR
-				pulse_scale_min *= game_scale.SCALE_FACTOR
+			if Iso.get_scale_factor():
+				pulse_scale_max *= Iso.get_scale_factor()
+				pulse_scale_min *= Iso.get_scale_factor()
 				
 			pulse_tween.tween_property(indicator_node, "scale", Vector2(pulse_scale_max, pulse_scale_max), 0.5)
 			pulse_tween.tween_property(indicator_node, "scale", Vector2(pulse_scale_min, pulse_scale_min), 0.5)
@@ -177,8 +157,8 @@ func in_range(is_closest_smell):
 			
 			# Apply game scale to the indicator size
 			var scale_base = 0.3
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
+			if Iso.get_scale_factor():
+				scale_base *= Iso.get_scale_factor()
 				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 			fade_tween.tween_property(indicator_node, "modulate:a", 0.6, 0.3)
@@ -201,8 +181,8 @@ func out_of_range():
 		tween.tween_callback(func():
 			# Reset scale when hidden - apply game scale
 			var scale_base = 0.4
-			if game_scale:
-				scale_base *= game_scale.SCALE_FACTOR
+			if Iso.get_scale_factor():
+				scale_base *= Iso.get_scale_factor()
 				
 			indicator_node.scale = Vector2(scale_base, scale_base)
 		)
@@ -214,8 +194,8 @@ func _process(delta):
 		# Keep the indicator at the smell's center but add a gentle floating effect
 		# Scale the float amount based on game scale
 		var float_amount = 3.0
-		if game_scale:
-			float_amount *= game_scale.SCALE_FACTOR
+		if Iso.get_scale_factor():
+			float_amount *= Iso.get_scale_factor()
 			
 		indicator_node.position.y = sin(Time.get_ticks_msec() * 0.001 * 2) * float_amount
 
@@ -316,3 +296,20 @@ func reset():
 	if indicator_node:
 		indicator_node.modulate.a = 0
 		indicator_node.visible = true
+
+# Sets up animations for the smell object
+func setup_animations():
+	# Start the idle animation if not already playing
+	start_idle_animation()
+
+func start_idle_animation():
+	# Set initial scale
+	var scale_base = Vector2(1, 1)
+	if Iso.get_scale_factor():
+		scale_base *= Iso.get_scale_factor()
+	scale = scale_base
+	
+	# Start the breathing animation
+	var tween = create_tween().set_loops()
+	tween.tween_property(self, "scale", Vector2(1.05, 1.05) * scale_base, 1.0)
+	tween.tween_property(self, "scale", scale_base, 1.0)

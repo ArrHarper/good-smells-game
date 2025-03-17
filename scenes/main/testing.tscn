@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dj02ug1o3ysit" path="res://scenes/collectibles/collectible.tscn" id="5_collect"]
 [ext_resource type="PackedScene" uid="uid://imdjiojyjkr7" path="res://scenes/main/flatmap.tscn" id="6_ismap"]
 [ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="9_m3u8n"]
-[ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="11_scaler"]
+[ext_resource type="Texture2D" uid="uid://b71706blkcw42" path="res://assets/images/arrowKeys2x.png" id="11_8xyq7"]
 [ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="12_blune"]
 [ext_resource type="PackedScene" uid="uid://ou5od6b1el2o" path="res://scenes/objects/wall.tscn" id="13_wall"]
 [ext_resource type="PackedScene" uid="uid://b4rhw2xkiuvrs" path="res://scenes/objects/breakable.tscn" id="14_break"]
@@ -23,9 +23,6 @@ shadow_offset = Vector2(3, 6)
 [node name="Testing" type="Node2D"]
 y_sort_enabled = true
 script = ExtResource("1_0wfyh")
-
-[node name="GameScaler" type="Node" parent="."]
-script = ExtResource("11_scaler")
 
 [node name="IsometricMap" parent="." instance=ExtResource("6_ismap")]
 z_index = -1
@@ -122,5 +119,10 @@ position = Vector2(144, -80)
 [node name="Breakable2" parent="MapObjects" instance=ExtResource("14_break")]
 visible = false
 position = Vector2(176, -64)
+
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+z_index = 5
+position = Vector2(225, 138)
+texture = ExtResource("11_8xyq7")
 
 [connection signal="pressed" from="CanvasLayer/GridToggleButton" to="." method="_on_grid_toggle_button_pressed"]

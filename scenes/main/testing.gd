@@ -4,13 +4,9 @@ extends Node2D
 var ui_scene = preload("res://scenes/UI/UI.tscn")
 var ui_instance
 
-# Isometric map constants - match these with the player script
-const TILE_WIDTH = 32
-const TILE_HEIGHT = 16
+# Map boundaries - min values hardcoded, max values from project settings
 const MIN_TILE_X = 0
-const MAX_TILE_X = 21
 const MIN_TILE_Y = 0
-const MAX_TILE_Y = 21
 
 # Debug mode - set to true for testing scene
 @export var debug_mode = true
@@ -218,7 +214,11 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 				error_handler.filter_message("Checking floor tiles")
 			
 			# Convert world position to tile coordinates
-			var tile_pos = IsometricUtils.world_to_tile(world_pos, TILE_WIDTH, TILE_HEIGHT)
+			var tile_pos = IsometricUtils.world_to_tile(world_pos)
+			
+			# Validate within map boundaries
+			tile_pos.x = clampi(tile_pos.x, MIN_TILE_X, ProjectSettings.get_setting("game_settings/grid/size_x", 21))
+			tile_pos.y = clampi(tile_pos.y, MIN_TILE_Y, ProjectSettings.get_setting("game_settings/grid/size_y", 21))
 			
 			if debug_mode:
 				print("Checking for floor tile at: ", tile_pos, " (from world pos: ", world_pos, ")")
@@ -257,8 +257,8 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 func _input(event):
 	# Scene switching
 	if event.is_action_pressed("switch_scene"):
-		print("Switching to main scene")
-		get_node("/root/SceneSwitcher").switch_to_main()
+		print("Cycling through scenes")
+		get_node("/root/SceneSwitcher").cycle_scenes()
 	
 	# Toggle isometric grid visibility with the G key
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -276,3 +276,13 @@ func update_grid_button_text():
 	var button = $CanvasLayer/GridToggleButton
 	if button:
 		button.text = "Grid: " + ("ON" if isometric_grid.show_grid else "OFF")
+
+func get_tile_pos_from_world(world_pos: Vector2) -> Vector2i:
+	# Use the IsometricUtils singleton to handle the conversion with centralized values
+	var tile_pos = IsometricUtils.world_to_tile(world_pos)
+	
+	# Validate within map boundaries
+	tile_pos.x = clampi(tile_pos.x, MIN_TILE_X, ProjectSettings.get_setting("game_settings/grid/size_x", 21))
+	tile_pos.y = clampi(tile_pos.y, MIN_TILE_Y, ProjectSettings.get_setting("game_settings/grid/size_y", 21))
+	
+	return tile_pos
