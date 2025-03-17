@@ -15,6 +15,9 @@ const MAX_TILE_Y = 21
 # Debug mode - set to true for testing scene
 @export var debug_mode = true
 
+# Reference to the isometric grid
+var isometric_grid
+
 func _ready():
 	# Set window title to indicate testing mode
 	DisplayServer.window_set_title("Good Smells - TESTING MODE")
@@ -29,6 +32,12 @@ func _ready():
 	ui_instance = ui_scene.instantiate()
 	add_child(ui_instance)
 	
+	# Get reference to isometric grid
+	isometric_grid = $IsometricGrid
+	
+	# Set initial button text based on grid visibility
+	update_grid_button_text()
+	
 	# Connect to smell animation completed signals
 	connect_smell_signals()
 		
@@ -42,6 +51,7 @@ func _ready():
 		print("TESTING scene ready with isometric map")
 		print("Map boundaries: ", get_map_boundaries())
 		print("Available smell objects:", count_smell_objects())
+		print("Press G to toggle the isometric grid visibility")
 
 # Setup additional testing environment features
 func setup_testing_environment():
@@ -243,8 +253,26 @@ func get_floor_tile_at_position(world_pos: Vector2) -> Vector2i:
 	
 	return Vector2i(-1, -1) # Return invalid coordinates if no tile found
 
-# Handle input for scene switching
+# Handle input for scene switching and grid toggling
 func _input(event):
+	# Scene switching
 	if event.is_action_pressed("switch_scene"):
 		print("Switching to main scene")
 		get_node("/root/SceneSwitcher").switch_to_main()
+	
+	# Toggle isometric grid visibility with the G key
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_G:
+			isometric_grid.toggle_grid()
+			update_grid_button_text()
+
+# Called when the grid toggle button is pressed
+func _on_grid_toggle_button_pressed():
+	isometric_grid.toggle_grid()
+	update_grid_button_text()
+
+# Updates the grid button text to match the current grid visibility state
+func update_grid_button_text():
+	var button = $CanvasLayer/GridToggleButton
+	if button:
+		button.text = "Grid: " + ("ON" if isometric_grid.show_grid else "OFF")

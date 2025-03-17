@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://bef2upm3o83ar" path="res://assets/images/buggo.png" id="2_gl4co"]
 [ext_resource type="Texture2D" uid="uid://ds3lplud4scfc" path="res://assets/images/buggoActive.png" id="2_n6wm8"]
 [ext_resource type="Texture2D" uid="uid://buek3cr6n3l5u" path="res://assets/images/buggoHover.png" id="4_lj5up"]
-[ext_resource type="PackedScene" path="res://scenes/UI/EscapeMenu.tscn" id="5_j1i45"]
+[ext_resource type="PackedScene" uid="uid://xpxjq8cosilu" path="res://scenes/UI/EscapeMenu.tscn" id="5_j1i45"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxj10"]
 bg_color = Color(0, 0, 0, 0.4)

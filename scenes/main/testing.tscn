@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://024qtd7ahmfb"]
+[gd_scene load_steps=13 format=3 uid="uid://024qtd7ahmfb"]
 
 [ext_resource type="Script" uid="uid://bkaoxjsh3sgu2" path="res://scenes/main/testing.gd" id="1_0wfyh"]
 [ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="3_6q06x"]
@@ -9,7 +9,8 @@
 [ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="11_scaler"]
 [ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="12_blune"]
 [ext_resource type="PackedScene" uid="uid://ou5od6b1el2o" path="res://scenes/objects/wall.tscn" id="13_wall"]
-[ext_resource type="PackedScene" path="res://scenes/objects/breakable.tscn" id="14_break"]
+[ext_resource type="PackedScene" uid="uid://b4rhw2xkiuvrs" path="res://scenes/objects/breakable.tscn" id="14_break"]
+[ext_resource type="Script" uid="uid://dhvt5qh8kl8gk" path="res://scenes/main/isometric_grid.gd" id="15_grid"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]
 font = ExtResource("3_6q06x")
@@ -28,7 +29,13 @@ script = ExtResource("11_scaler")
 
 [node name="IsometricMap" parent="." instance=ExtResource("6_ismap")]
 z_index = -1
-position = Vector2(3, 1)
+scale = Vector2(0.994219, 1)
+metadata/_edit_lock_ = true
+
+[node name="IsometricGrid" type="Node2D" parent="."]
+z_index = 2
+position = Vector2(0, -168)
+script = ExtResource("15_grid")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -46,8 +53,23 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 18
-text = "TESTING MODE (Alt+T)"
+text = "EXPERIMENTAL (DANGEROUS)"
 horizontal_alignment = 2
+
+[node name="GridToggleButton" type="Button" parent="CanvasLayer"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 90.0
+offset_bottom = 40.0
+focus_mode = 0
+theme_override_colors/font_hover_color = Color(0.5, 0.8, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_colors/font_color = Color(0.3, 0.7, 1, 1)
+theme_override_colors/font_focus_color = Color(0.3, 0.7, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.8, 0.9, 1, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 16
+text = "Grid: ON"
 
 [node name="TitleLabel" type="Label" parent="."]
 offset_left = -184.0
@@ -82,16 +104,23 @@ position = Vector2(-48, 54)
 texture = ExtResource("12_blune")
 
 [node name="Wall1" parent="MapObjects" instance=ExtResource("13_wall")]
+visible = false
 position = Vector2(34, -120)
 
 [node name="Wall2" parent="MapObjects" instance=ExtResource("13_wall")]
+visible = false
 position = Vector2(50, -112)
 
 [node name="Wall3" parent="MapObjects" instance=ExtResource("13_wall")]
+visible = false
 position = Vector2(66, -104)
 
 [node name="Breakable1" parent="MapObjects" instance=ExtResource("14_break")]
+visible = false
 position = Vector2(144, -80)
 
 [node name="Breakable2" parent="MapObjects" instance=ExtResource("14_break")]
+visible = false
 position = Vector2(176, -64)
+
+[connection signal="pressed" from="CanvasLayer/GridToggleButton" to="." method="_on_grid_toggle_button_pressed"]

@@ -10,6 +10,11 @@ func _ready():
 	# Wait for one frame to ensure all nodes are ready
 	await get_tree().process_frame
 	
+	# Skip all scaling operations if disabled in ScaleHelper
+	if not ScaleHelper.SCALING_ENABLED:
+		print("GameScale: Custom scaling is disabled, using native Godot scaling only")
+		return
+	
 	# Connect to the ScaleHelper's scale_changed signal
 	var scale_helper = get_node_or_null("/root/ScaleHelper")
 	if scale_helper:
@@ -23,12 +28,18 @@ func _ready():
 
 # Handler for scale changes (called when restarting)
 func _on_scale_changed(new_scale):
+	# Skip if scaling is disabled
+	if not ScaleHelper.SCALING_ENABLED:
+		return
+		
 	has_scaled = false
 	
 	# Re-apply pixel-perfect filtering
 	apply_pixel_perfect_filter()
 
 func apply_pixel_perfect_filter():
+	# We still apply pixel-perfect filtering even if scaling is disabled
+	# This ensures proper display of pixel art
 	# Find the IsometricMap node 
 	var main_scene = get_parent()
 	if main_scene.has_node("IsometricMap"):
@@ -58,6 +69,10 @@ func apply_filtering_to_sprites(node):
 			apply_filtering_to_sprites(child)
 
 func _on_node_added(node):
+	# Skip if scaling is disabled
+	if not ScaleHelper.SCALING_ENABLED:
+		return
+		
 	# Skip UI elements
 	if node is Control:
 		return

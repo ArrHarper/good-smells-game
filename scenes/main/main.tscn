@@ -30,6 +30,7 @@ script = ExtResource("11_scaler")
 
 [node name="IsometricMap" parent="." instance=ExtResource("6_ismap")]
 z_index = -1
+texture_filter = 1
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -63,6 +64,7 @@ script = ExtResource("9_m3u8n")
 
 [node name="nose" parent="." instance=ExtResource("3_sugp2")]
 z_index = 10
+texture_filter = 1
 position = Vector2(-102, -26)
 
 [node name="GoodSmell1" parent="." instance=ExtResource("4_lfxvs")]
@@ -85,6 +87,7 @@ particles_color = Color(0.670588, 0.321569, 0.211765, 1)
 
 [node name="BadSmell2" parent="." instance=ExtResource("4_lfxvs")]
 z_index = 5
+texture_filter = 1
 position = Vector2(80, -24)
 smell_name = "Garbage"
 smell_type = "bad"
@@ -121,14 +124,17 @@ scale = Vector2(0.78125, 0.84375)
 texture = ExtResource("10_ouso4")
 
 [node name="TrashcanSprite" type="Sprite2D" parent="MapObjects"]
+texture_filter = 1
 position = Vector2(13, -65)
 texture = ExtResource("9_a8run")
 
 [node name="Sprite2D" type="Sprite2D" parent="MapObjects"]
+texture_filter = 1
 position = Vector2(-68, -24)
 scale = Vector2(1.79688, 1.60938)
 texture = ExtResource("11_ouso4")
 
 [node name="Sprite2D2" type="Sprite2D" parent="MapObjects"]
+texture_filter = 1
 position = Vector2(-48, 54)
 texture = ExtResource("12_blune")

@@ -10,10 +10,10 @@ const DEFAULT_TILE_HEIGHT = 16
 
 # Get the appropriate scaled tile dimensions
 static func get_scaled_tile_width() -> float:
-	return DEFAULT_TILE_WIDTH * ScaleHelper.SCALE_FACTOR
+	return DEFAULT_TILE_WIDTH * ScaleHelper.get_scale_factor()
 
 static func get_scaled_tile_height() -> float:
-	return DEFAULT_TILE_HEIGHT * ScaleHelper.SCALE_FACTOR
+	return DEFAULT_TILE_HEIGHT * ScaleHelper.get_scale_factor()
 
 # Convert world position to isometric tile coordinates
 static func world_to_tile(world_pos: Vector2, tile_width: float = -1, tile_height: float = -1) -> Vector2i:
