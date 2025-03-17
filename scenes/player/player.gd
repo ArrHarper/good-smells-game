@@ -24,6 +24,11 @@ signal smell_detected(smell_text, smell_type) # Signal when a smell is detected
 # Collectible detection (will reuse the smelling action)
 var pending_collectibles = [] # List of collectible objects to process
 
+# Shooting properties
+var projectile_scene = preload("res://scenes/objects/projectile.tscn")
+var can_shoot = true
+var shoot_cooldown = 0.2 # Time in seconds between shots
+
 # Particle system properties
 var smell_particles = null
 var default_particle_color = Color(0.9, 0.9, 1.0, 0.8)
@@ -74,6 +79,9 @@ func _ready():
 	# Create smell particles
 	setup_smell_particles()
 	
+	# Setup shooting cooldown timer
+	setup_shoot_cooldown_timer()
+	
 	# Start playing the default animation
 	if has_node("IsoNoseSprite"):
 		$IsoNoseSprite.play("noseFacingSouthEast")
@@ -92,6 +100,18 @@ func _ready():
 	range_check_timer.connect("timeout", _on_range_check_timer_timeout)
 	add_child(range_check_timer)
 	range_check_timer.start()
+
+# Set up the shooting cooldown timer
+func setup_shoot_cooldown_timer():
+	var timer = Timer.new()
+	timer.name = "ShootCooldownTimer"
+	timer.wait_time = shoot_cooldown
+	timer.one_shot = true
+	timer.connect("timeout", _on_shoot_cooldown_timeout)
+	add_child(timer)
+
+func _on_shoot_cooldown_timeout():
+	can_shoot = true
 
 # Handler for scale changes
 func _on_scale_changed(new_scale):
@@ -707,3 +727,61 @@ func update_z_index():
 	# Debugging - disabled, now shown in UI debug display
 	# if debug_mode and velocity.length() > 0 and position_report_timer == 0:
 	# 	print("Player z-index fixed at: ", z_index)
+
+# Handle input for player movement and actions
+func _unhandled_input(event):
+	# If F key is pressed, shoot a projectile
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F and can_shoot:
+		shoot_projectile()
+
+# Shoot a projectile in the direction the player is facing
+func shoot_projectile():
+	if !can_shoot:
+		return
+		
+	# Determine the direction based on the current animation
+	var direction = Vector2.RIGHT
+	var current_animation = ""
+	
+	if has_node("IsoNoseSprite"):
+		current_animation = $IsoNoseSprite.animation
+		
+	# Use proper isometric angles (2:1 ratio)
+	if current_animation == "noseFacingNorthEast":
+		direction = Vector2(2, -1).normalized()
+	elif current_animation == "noseFacingNorthWest":
+		direction = Vector2(-2, -1).normalized()
+	elif current_animation == "noseFacingSouthEast":
+		direction = Vector2(2, 1).normalized()
+	elif current_animation == "noseFacingSouthWest":
+		direction = Vector2(-2, 1).normalized()
+	
+	# Calculate the projectile spawn offset based on facing direction
+	var offset = Vector2.ZERO
+	var offset_distance = 20 # Distance from center to spawn point
+	
+	# Apply offset based on the current animation direction to match nostril position
+	if current_animation == "noseFacingNorthEast":
+		offset = Vector2(offset_distance * 0.4, offset_distance * 0.8)
+	elif current_animation == "noseFacingNorthWest":
+		offset = Vector2(-offset_distance * 0.4, offset_distance * 0.8)
+	elif current_animation == "noseFacingSouthEast":
+		offset = Vector2(offset_distance * 0.4, offset_distance * 0.8)
+	elif current_animation == "noseFacingSouthWest":
+		offset = Vector2(-offset_distance * 0.4, offset_distance * 0.8)
+		
+	# Create the projectile instance
+	var projectile = projectile_scene.instantiate()
+	projectile.position = position + offset
+	projectile.direction = direction
+	projectile.from_player = true
+	
+	# Add the projectile to the scene
+	get_parent().add_child(projectile)
+	
+	# Set cooldown
+	can_shoot = false
+	$ShootCooldownTimer.start()
+	
+	if debug_mode:
+		print("Shot projectile in direction: ", direction)

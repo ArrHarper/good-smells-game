@@ -1,0 +1,104 @@
+[gd_scene load_steps=12 format=3 uid="uid://cn7nud31j7rd8"]
+
+[ext_resource type="Script" uid="uid://bkaoxjsh3sgu2" path="res://scenes/main/testing.gd" id="1_hqw5y"]
+[ext_resource type="Script" uid="uid://cydmbfbpsasyb" path="res://scripts/game_scale.gd" id="2_2upy3"]
+[ext_resource type="PackedScene" uid="uid://imdjiojyjkr7" path="res://scenes/main/flatmap.tscn" id="3_2hwg8"]
+[ext_resource type="FontFile" uid="uid://c022ogphrgx6o" path="res://assets/VAGABONDED-BOLD.TTF" id="4_u4j0e"]
+[ext_resource type="Script" uid="uid://cgjy8m8js40ne" path="res://scenes/main/title.gd" id="5_xgegi"]
+[ext_resource type="PackedScene" uid="uid://b0dw3hyhtyow2" path="res://scenes/player/player.tscn" id="6_a6d3d"]
+[ext_resource type="PackedScene" uid="uid://dbw0qdadjukii" path="res://scenes/smells/smell.tscn" id="7_cwgn8"]
+[ext_resource type="PackedScene" uid="uid://dj02ug1o3ysit" path="res://scenes/collectibles/collectible.tscn" id="8_37e5t"]
+[ext_resource type="Texture2D" uid="uid://bxucoxsvw7plu" path="res://assets/images/hotdogpicnictable.png" id="9_m1uoy"]
+[ext_resource type="Texture2D" uid="uid://csy8a42wvmn2u" path="res://assets/images/dragonflygrass.png" id="10_oplav"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ow5a4"]
+font = ExtResource("4_u4j0e")
+font_size = 28
+font_color = Color(1, 0.301961, 0.301961, 1)
+shadow_size = 9
+shadow_color = Color(0.756863, 0.376471, 0.509804, 1)
+shadow_offset = Vector2(3, 6)
+
+[node name="Testing" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_hqw5y")
+
+[node name="GameScaler" type="Node" parent="."]
+script = ExtResource("2_2upy3")
+
+[node name="IsometricMap" parent="." instance=ExtResource("3_2hwg8")]
+z_index = -1
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TestModeLabel" type="Label" parent="CanvasLayer"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -174.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 36.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "TESTING MODE (Alt+T)"
+horizontal_alignment = 2
+
+[node name="TitleLabel" type="Label" parent="."]
+offset_left = -184.0
+offset_top = -275.0
+offset_right = 184.0
+offset_bottom = -182.0
+text = "TESTING SCENE"
+label_settings = SubResource("LabelSettings_ow5a4")
+horizontal_alignment = 1
+script = ExtResource("5_xgegi")
+
+[node name="nose" parent="." instance=ExtResource("6_a6d3d")]
+z_index = 10
+position = Vector2(-102, -26)
+
+[node name="GoodSmell1" parent="." instance=ExtResource("7_cwgn8")]
+z_index = 5
+position = Vector2(-67, -26)
+smell_name = "Flowers"
+smell_type = "good"
+smell_message = "Mmm, fresh flowers!"
+points = 25
+particles_color = Color(1, 0, 0.301961, 1)
+
+[node name="EpicSmell1" parent="." instance=ExtResource("7_cwgn8")]
+z_index = 5
+position = Vector2(145, 7)
+smell_name = "Chocolate"
+smell_type = "epic"
+smell_message = "Delicious chocolate!"
+points = 25
+particles_color = Color(0, 1, 0.8, 1)
+
+[node name="CommonCollectible" parent="." instance=ExtResource("8_37e5t")]
+z_index = 5
+position = Vector2(50, 40)
+collectible_name = "Coin"
+collectible_message = "You found a coin!"
+points = 10
+particles_color = Color(1, 0.85, 0, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="MapObjects" type="Node2D" parent="."]
+z_index = 5
+y_sort_enabled = true
+
+[node name="Sprite2D" type="Sprite2D" parent="MapObjects"]
+position = Vector2(-68, -24)
+scale = Vector2(1.79688, 1.60938)
+texture = ExtResource("9_m1uoy")
+
+[node name="Sprite2D2" type="Sprite2D" parent="MapObjects"]
+position = Vector2(-48, 54)
+texture = ExtResource("10_oplav")
